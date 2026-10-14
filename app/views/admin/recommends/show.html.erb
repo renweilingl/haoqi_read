@@ -1,0 +1,101 @@
+<% content_for :title, "推荐内容详情 - #{@recommended_content.name}" %>
+
+<div class="layui-fluid">
+  <div class="layui-card">
+    <div class="layui-card-header">
+      <span class="layui-breadcrumb">
+        <a href="<%= admin_dashboard_path %>">首页</a>
+        <a href="<%= admin_grades_path %>">年级管理</a>
+        <a href="<%= grade_recommended_contents_path(@grade) %>"><%= @grade.full_name %></a>
+        <a><cite>推荐内容详情</cite></a>
+      </span>
+    </div>
+    <div class="layui-card-body">
+      <div class="layui-form" style="max-width: 800px;">
+        <div class="layui-form-item">
+          <label class="layui-form-label">所属年级</label>
+          <div class="layui-form-block">
+            <span class="layui-form-text" style="padding: 9px 0;"><%= @grade.full_name %></span>
+          </div>
+        </div>
+
+        <div class="layui-form-item">
+          <label class="layui-form-label">名称</label>
+          <div class="layui-form-block">
+            <span class="layui-form-text" style="padding: 9px 0;"><%= @recommended_content.name %></span>
+          </div>
+        </div>
+
+        <div class="layui-form-item">
+          <label class="layui-form-label">描述</label>
+          <div class="layui-form-block">
+            <span class="layui-form-text" style="padding: 9px 0;"><%= @recommended_content.description.presence || '-' %></span>
+          </div>
+        </div>
+
+        <div class="layui-form-item">
+          <label class="layui-form-label">封面图片</label>
+          <div class="layui-form-block">
+            <% if @recommended_content.cover_image_url.present? %>
+              <img src="<%= @recommended_content.cover_image_url %>" alt="封面" style="max-width: 300px; max-height: 200px; border-radius: 4px;">
+            <% else %>
+              <span class="layui-form-text" style="padding: 9px 0; color: #999;">暂无封面</span>
+            <% end %>
+          </div>
+        </div>
+
+        <div class="layui-form-item">
+          <label class="layui-form-label">链接地址</label>
+          <div class="layui-form-block">
+            <% if @recommended_content.link_url.present? %>
+              <a href="<%= @recommended_content.link_url %>" target="_blank" class="layui-form-text" style="padding: 9px 0; color: #1E9FFF;"><%= @recommended_content.link_url %></a>
+            <% else %>
+              <span class="layui-form-text" style="padding: 9px 0; color: #999;">-</span>
+            <% end %>
+          </div>
+        </div>
+
+        <div class="layui-form-item">
+          <label class="layui-form-label">排序</label>
+          <div class="layui-form-block">
+            <span class="layui-form-text" style="padding: 9px 0;"><%= @recommended_content.sort_order || 0 %></span>
+          </div>
+        </div>
+
+        <div class="layui-form-item">
+          <label class="layui-form-label">状态</label>
+          <div class="layui-form-block">
+            <% if @recommended_content.status? %>
+              <span class="layui-badge layui-bg-green">已发布</span>
+            <% else %>
+              <span class="layui-badge">草稿</span>
+            <% end %>
+          </div>
+        </div>
+
+        <div class="layui-form-item">
+          <label class="layui-form-label">创建时间</label>
+          <div class="layui-form-block">
+            <span class="layui-form-text" style="padding: 9px 0;"><%= @recommended_content.created_at.strftime('%Y-%m-%d %H:%M:%S') %></span>
+          </div>
+        </div>
+
+        <div class="layui-form-item">
+          <label class="layui-form-label">更新时间</label>
+          <div class="layui-form-block">
+            <span class="layui-form-text" style="padding: 9px 0;"><%= @recommended_content.updated_at.strftime('%Y-%m-%d %H:%M:%S') %></span>
+          </div>
+        </div>
+
+        <div class="layui-form-item">
+          <div class="layui-input-block">
+            <a href="<%= edit_grade_recommended_content_path(@grade, @recommended_content) %>" class="layui-btn">
+              <i class="layui-icon layui-icon-edit"></i> 编辑
+            </a>
+            <a href="<%= grade_recommended_contents_path(@grade) %>" class="layui-btn layui-btn-primary">返回列表</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

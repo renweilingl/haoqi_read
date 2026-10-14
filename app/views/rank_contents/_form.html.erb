@@ -1,0 +1,73 @@
+<%= form_for(@content, url: @content.new_record? ? :grade_rank_rank_contents : :grade_rank_rank_content,method: @content.new_record? ? :post : :put, :html => {:class => "layui-form"}) do |f| %>
+  <div class="layui-form-item">
+    <label class="layui-form-label">链接类型</label>
+    <div class="layui-input-block">
+      <input type="radio" lay-filter="levelFilter" name="rank_content[content_type]" value="compilation" title="合辑" <%= 'checked' if @content.content_type== "compilation" %>>
+      <input type="radio" lay-filter="levelFilter" name="rank_content[content_type]" value="book" title="单本" <%= 'checked' if @content.content_type== "book" %>>
+    </div>
+  </div>
+
+  <div class="layui-form-item" id="option-wrap">
+    <% if @content.content_type == "compilation" %>
+      <label class="layui-form-label">选择合辑</label>
+      <div class="layui-input-block">
+        <select name="rank_content[compilation_id]" lay-search="" lay-verify="required">
+          <option value="">选择链接内容</option>
+          <% Compilation.all.each do |x| %>
+            <option value="<%= x.id %>" <%= "selected" if @content.compilation_id == x.id %>><%= x.name %></option>
+          <% end %>
+        </select>
+      </div>
+    <% else %>
+      <label class="layui-form-label">选择单本</label>
+      <div class="layui-input-block">
+        <select name="rank_content[book_id]" lay-search="" lay-verify="required">
+          <option value="">选择链接内容</option>
+          <% Book.all.each do |x| %>
+            <option value="<%= x.id %>" <%= "selected" if @content.book_id == x.id %>><%= x.name %></option>
+          <% end %>
+        </select>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="layui-form-item layui-col-md6">
+    <label class="layui-form-label">序号</label>
+    <div class="layui-input-block">
+      <%= f.number_field :sn, class: "layui-input", min: 0, step: 1, required: true, style: "width: 400px;" %>
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <div class="layui-input-block">
+      <button type="submit" class="layui-btn layui-bg-blue" lay-submit lay-filter="submit-content">
+        <i class="layui-icon layui-icon-release"></i>提交保存
+      </button>
+      <%= link_to "取消", grade_rank_rank_contents_path(@grade, @rank), class: "layui-btn layui-btn-primary" %>
+    </div>
+  </div>
+<% end %>
+
+<script>
+    layui.use(['form', 'layer', 'upload'], function(){
+      var form = layui.form;
+      var layer = layui.layer;
+      var upload = layui.upload;
+
+      form.on('radio(levelFilter)', function(data) {
+        var content_type = data.value;
+        $.ajax({
+            url: "/grades/options/",
+            type: 'get',
+            dataType: 'json',
+            data: {content_type: content_type},
+            success: function (json) {
+                $("#option-wrap").html(json.opts);
+                form.render();
+            },
+            error: function (e) {
+            }
+        });
+      });
+    });
+</script>

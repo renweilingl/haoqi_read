@@ -1,0 +1,37 @@
+<div class="layui-tab">
+  <div class="x-nav">
+    <span class="layui-breadcrumb">
+      <%= link_to "合辑管理", :admin_compilations %>
+      <a><cite><%= @compilation.name %></cite></a>
+      <a><cite>合辑内容</cite></a>
+    </span>
+    <%= render 'common/user_info' %>
+  </div>
+  <div class="x-body">
+    <div class="layui-btn-container">
+      <%= link_to admin_compilations_path, class: "layui-btn layui-btn-primary" do %>
+        <i class="layui-icon layui-icon-return"></i>返回列表
+      <% end %>
+    </div>
+
+    <table class="layui-table">
+      <thead>
+        <tr>
+          <th>分类</th>
+          <th>名称</th>
+          <th width="120" style="text-align:center;">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @books.each do |x| %>
+          <tr>
+            <td><%= x.category.name %></td>
+            <td><%= x.name %></td>
+            <td style="text-align:center;">
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>

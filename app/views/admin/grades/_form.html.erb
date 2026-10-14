@@ -1,0 +1,29 @@
+<%= form_for(@grade, url: @grade.new_record? ? :admin_grades : :admin_grade,method: @grade.new_record? ? :post : :put, :html => {:class => "layui-form"}) do |f| %>
+  <div class="layui-form-item">
+    <%= f.label :group_name, "分组名", class: "layui-form-label" %>
+    <div class="layui-input-block">
+      <%= f.text_field :group_name, class: "layui-input", placeholder: "请输入分组名称", lay_verify: "required", lay_reqtext: "分组名不能为空" %>
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <%= f.label :name, "名称", class: "layui-form-label" %>
+    <div class="layui-input-block">
+      <%= f.text_field :name, class: "layui-input", placeholder: "请输入名称", lay_verify: "required", lay_reqtext: "名称不能为空" %>
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <%= f.label :description, "年龄段", class: "layui-form-label" %>
+    <div class="layui-input-block">
+      <%= f.text_field :description, class: "layui-input", placeholder: "请输入年龄段", lay_verify: "required", lay_reqtext: "年龄段不能为空" %>
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <div class="layui-input-block">
+      <button class="layui-btn layui-bg-blue" lay-submit lay-filter="component-form-element">立即提交</button>
+      <%= link_to "取消", :admin_grades, class: "layui-btn layui-btn-primary" %>
+    </div>
+  </div>
+<% end %>

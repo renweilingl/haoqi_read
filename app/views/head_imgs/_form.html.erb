@@ -1,0 +1,64 @@
+<%= form_for(@head_img, url: @head_img.new_record? ? :head_imgs : :head_img,method: @head_img.new_record? ? :post : :put, :html => {:class => "layui-form"}) do |f| %> 
+  <div class="layui-form-item">
+    <%= f.label :lan_type, class: "layui-form-label" do %>
+      <span class="required">*</span> 类型
+    <% end %>
+    <div class="layui-input-block">
+      <%= f.radio_button :is_vip, true, title: "vip头像" %>
+      <%= f.radio_button :is_vip, false, title: "普通用户头像" %>
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <label class="layui-form-label">头像</label>
+    <div class="layui-input-block">
+      <div class="layui-upload">
+        <button type="button" class="layui-btn layui-btn-normal" id="uploadBtn">上传头像</button>
+        <span style="margin-left: 10px; color: #999; font-size: 12px;">支持 jpg、png、gif、webp</span>
+        <div class="layui-upload-list" id="iconPreview" style="margin-top: 10px;">
+          <img src="<%= @head_img.img_url.blank? ? '' : FileMap.new(@head_img.img_url, 'img').secrity_src %>" id="previewImg" style="width: 60px; height: 60px; object-fit: contain; display: <%= @head_img.img_url.blank? ?  'none' : 'block' %>;">
+          <%= f.hidden_field :img_url, id: "iconInput" %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <div class="layui-input-block">
+      <button type="submit" class="layui-btn layui-bg-blue" lay-submit lay-filter="submit-content">
+        <i class="layui-icon layui-icon-release"></i>提交保存
+      </button>
+      <%= link_to "取消", :head_imgs, class: "layui-btn layui-btn-primary" %>
+    </div>
+  </div>
+<% end %>
+
+<script>
+  layui.use(['form', 'layer', 'upload'], function(){
+      var form = layui.form;
+      var layer = layui.layer;
+      var upload = layui.upload;
+
+      form.render();
+
+      upload.render({
+          elem: '#uploadBtn',
+          url: '<%= upload_img_files_path %>',
+          size: 1024, // 1MB
+          accept: 'images',
+          exts: 'jpg|jpeg|png|gif|webp|svg',
+          done: function(res){
+            if (res.success) {
+              $('#iconInput').val(res.url);
+              $('#previewImg').attr('src', res.preivew_url).show();
+              layer.msg('上传成功', {icon: 1});
+            } else {
+              layer.msg(res.error || '上传失败', {icon: 2});
+            }
+          },
+          error: function(){
+            layer.msg('上传失败', {icon: 2});
+          }
+      });
+  });
+</script>

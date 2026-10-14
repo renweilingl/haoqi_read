@@ -1,0 +1,49 @@
+<div class="layui-tab">                                                          
+  <div class="x-nav">                                                            
+    <span class="layui-breadcrumb">                                              
+      <a href="">内容管理</a>
+      <a><cite>图书分级管理</cite></a>
+    </span>
+    <%= render 'common/user_info' %>
+  </div>
+
+  <div class="x-body"> 
+    <div class="layui-row">
+      <div class="layui-form layui-form-pane" style="margin-bottom: 10px;">
+        <div class="layui-form-item">
+          <div class="layui-inline">
+            <a href="<%= new_admin_book_level_path %>" class="layui-btn layui-btn-normal">
+              <i class="layui-icon layui-icon-add-1"></i> 添加等级
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+      
+    <table class="layui-table">
+      <thead>
+        <tr>
+          <th>分级名称</th>
+          <th>序号</th>
+          <th>添加时间</th>
+          <th width="140" style="text-align:center;">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @book_levels.each do |r| %>
+          <tr>
+            <td><%= r.name %></td>
+            <td><%= r.sn %></td>
+            <td><%= r.created_at.strftime("%Y-%m-%d") %></td>
+            <td style="text-align:center;">                                    
+              <div class="layui-btn-group">                                    
+                <%= link_to "编辑", edit_admin_book_level_path(r), class: "layui-btn layui-btn-sm" %>
+                <%= link_to '删除', admin_book_level_path(r), method: :delete, class: "layui-btn layui-btn-sm layui-btn-danger", title: "删除", data: { confirm: "确定要删除图书分级吗？此操作不可恢复。" } %>
+              </div>                                                           
+            </td>  
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>

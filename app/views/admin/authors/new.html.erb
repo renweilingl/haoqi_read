@@ -1,0 +1,14 @@
+<div class="layui-tab">
+  <div class="x-nav">
+    <span class="layui-breadcrumb">
+      <a href="">权限管理</a>
+      <%= link_to "作者管理", :admin_authors %>
+      <a><cite>新增作者</cite></a>
+    </span>
+    <%= render 'common/user_info' %>
+  </div>
+
+  <div class="x-body">
+    <%= render 'form' %>
+  </div>
+</div>

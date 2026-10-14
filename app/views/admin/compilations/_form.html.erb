@@ -1,0 +1,617 @@
+<%= stylesheet_link_tag 'wangeditor', media: 'all' %>
+<%= javascript_include_tag 'wangeditor', 'data-turbolinks-track': 'reload' %>
+
+<%= form_for(@compilation, url: @compilation.new_record? ? :admin_compilations : :admin_compilation,method: @compilation.new_record? ? :post : :put, :html => {:class => "layui-form"}) do |f| %>
+  <fieldset class="layui-elem-field layui-field-title">
+    <legend>
+      <i class="layui-icon layui-icon-picture"></i> 基本信息
+    </legend>
+  </fieldset>
+
+  <div class="layui-form-item">
+    <%= f.label :name, class: "layui-form-label" do %>
+      <span class="required">*</span> 合辑名称
+    <% end %>
+    <div class="layui-input-block">
+      <%= f.text_field :name, class: "layui-input", placeholder: "请输入合辑名称", maxlength: 100, required: true, style: "width: 400px;" %>
+      <span style="margin-left: 10px; color: #999; font-size: 12px;">合辑名称不可重复</span>
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <label class="layui-form-label"><span class="required">*</span> Banner</label>
+    <div class="layui-input-block">
+      <div class="layui-upload">
+        <button type="button" class="layui-btn layui-btn-normal" id="upload-banner">
+          <i class="layui-icon layui-icon-upload"></i> 上传Banner
+        </button>
+        <span style="margin-left: 10px; color: #999;">支持 JPG、PNG 格式</span>
+      </div>
+      <div id="banner-preview" style="margin-top: 10px; display: <%= @compilation.banner_image_url.blank? ?  'none' : 'block' %>;">
+        <img id="banner-img" src="<%= @compilation.banner_image_url.blank? ? '' : FileMap.new(@compilation.banner_image_url, 'img').secrity_src %>" style="max-width: 300px; border-radius: 4px; border: 1px solid #e6e6e6;" />
+        <button type="button" class="layui-btn layui-btn-xs layui-btn-danger cover-remove" style="margin-left: 10px;">
+          <i class="layui-icon layui-icon-close"></i> 移除
+        </button>
+      </div>
+      <%= f.hidden_field :banner_image_url, id: "banner_image_url" %>
+      <%= f.hidden_field :banner_image_name, id: "banner_image_name" %>
+    </div>
+  </div>
+      
+  <fieldset class="layui-elem-field layui-field-title">
+    <legend>
+      <i class="layui-icon layui-icon-survey"></i> 年龄与分类
+    </legend>
+  </fieldset>
+
+  <div class="layui-form-item">
+    <label class="layui-form-label">年龄范围</label>
+    <div class="layui-input-block">
+      <div class="grade-checkbox" id="grade-checkbox">
+        <% Grade.all.each do |grade| %>
+          <input type="checkbox" name="compilation[grade_ids][]" value=<%= grade.id %> title="<%= grade.name %>" <%= 'checked' if @compilation.grade_ids.include?(grade.id) %> />
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <label class="layui-form-label">分类</label>
+    <div class="layui-input-block">
+      <% Category.all.each do |cat| %>
+        <input type="checkbox" name="compilation[category_ids][]" value=<%= cat.id %> title="<%= cat.name %>" <%= 'checked' if @compilation.category_ids.include?(cat.id) %> />
+      <% end %>
+    </div>
+  </div>
+
+  <fieldset class="layui-elem-field layui-field-title">
+    <legend>
+      <i class="layui-icon layui-icon-chart-screen"></i> 内容属性
+    </legend>
+  </fieldset>
+
+  <div class="layui-form-item">
+    <%= f.label :editor_recommendation, class: "layui-form-label" do %>
+      <span class="required">*</span> 编辑推荐语
+    <% end %>
+    <div class="layui-input-block">
+      <%= f.text_field :editor_recommendation, class: "layui-input", placeholder: "简短推荐语", maxlength: 15, style: "width: 400px;" %>
+      <span style="margin-left: 10px; color: #999;">15个字以内</span>
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <%= f.label :publisher, "出版社", class: "layui-form-label" %>
+    <div class="layui-input-block">
+      <%= f.text_field :publisher, class: "layui-input", placeholder: "请输入出版社名称", maxlength: 100, style: "width: 400px;" %>
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <%= f.label :total_count, "合辑总集数", class: "layui-form-label" %>
+    <div class="layui-input-block">
+      <%= f.number_field :total_count, class: "layui-input", placeholder: "合辑包含的图书数量", min: 0, style: "width: 400px;" %>
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <%= f.label :author, "作者", class: "layui-form-label" %>
+    <div class="layui-input-block">
+      <%= f.text_field :author, class: "layui-input", placeholder: "请输入作者名称", maxlength: 100, style: "width: 400px;" %>
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <%= f.label :tags, "标签", class: "layui-form-label" %>
+    <div class="layui-input-block">
+      <%= f.text_field :tags, class: "layui-input", placeholder: "多个标签用逗号分隔", style: "width: 400px;",
+        value: @compilation.tags_array.blank? ? "" : @compilation.tags_array.join(', ') %>
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <%= f.label :serialize_state, "连载状态", class: "layui-form-label" %>
+    <div class="layui-input-block">
+      <%= f.select :serialize_state, Compilation::SERIAL_STATE_NAMES.map { |k, v| [v, k] }, { prompt: '请选择连载状态' }, { class: 'layui-input', required: true } %>
+    </div>
+  </div>
+
+  <fieldset class="layui-elem-field layui-field-title">
+    <legend>
+      <i class="layui-icon layui-icon-picture-fine"></i> 图片与介绍
+    </legend>
+  </fieldset>
+
+  <div class="layui-form-item">
+    <%= f.label :intro_image_url, "图片简介", class: "layui-form-label" %>
+    <div class="layui-input-block">
+      <div class="layui-upload">
+        <button type="button" class="layui-btn layui-btn-normal" id="upload-intro">
+          <i class="layui-icon layui-icon-upload"></i> 上传图片简介
+        </button>
+        <span style="margin-left: 10px; color: #999;">支持 JPG、PNG 格式</span>
+      </div>
+      <div id="intro-preview" style="margin-top: 10px; display: none;">
+        <img id="intro-img" src="" style="max-width: 300px; border-radius: 4px; border: 1px solid #e6e6e6;" />
+        <button type="button" class="layui-btn layui-btn-xs layui-btn-danger intro-remove" style="margin-left: 10px;">
+          <i class="layui-icon layui-icon-close"></i> 移除
+        </button>
+      </div>
+      <%= f.hidden_field :intro_image_url, id: "intro_image_url" %>
+      <%= f.hidden_field :intro_image_name, id: "intro_image_name" %>
+    </div>
+  </div>
+
+  <!-- 合辑简介 -->
+  <div class="layui-form-item">
+    <%= f.label :content_description, "合辑简介", class: "layui-form-label" %>
+    <div class="layui-input-block">
+      <div id="richtext-editor" class="description-editor">
+        <div id="wang-editor-toolbar" style="border-bottom: 1px solid #e6e6e6;"></div>
+        <div name="content_description" id="wang-editor-content" style="height: 320px; overflow-y: auto;border: 1px solid #e6e6e6;"></div>
+        <%= f.hidden_field :content_description, id: "content-description-hidden" %>
+      </div>
+    </div>
+  </div>
+
+  <div class="layui-form-item" style="margin-top: 30px;">
+    <div class="layui-input-block">
+      <button type="submit" class="layui-btn layui-btn-normal" lay-submit lay-filter="submit-form">
+        <i class="layui-icon layui-icon-release"></i> 提交保存
+      </button>
+      <%= link_to "取消", admin_compilations_path, class: "layui-btn layui-btn-primary" %>
+    </div>
+  </div>
+<% end %>
+
+<style>
+  .layui-elem-field {
+    margin-top: 30px;
+  }
+
+  .layui-elem-field legend {
+    font-size: 16px;
+    color: #52c41a;
+  }
+
+  .required {
+    color: #ff4d4f;
+    margin-right: 2px;
+  }
+
+  .cover-uploads-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    width: 100%;
+  }
+
+  .cover-upload-item {
+    border: 1px solid #e6e6e6;
+    border-radius: 4px;
+    padding: 15px;
+    background: #fafafa;
+  }
+
+  .cover-upload-label {
+    font-weight: 500;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .cover-specs {
+    font-size: 12px;
+    color: #999;
+    font-weight: normal;
+  }
+
+  .required-tag::before {
+    content: '*';
+    color: #ff4d4f;
+    margin-right: 2px;
+  }
+
+  .cover-specs.required-tag {
+    color: #ff4d4f;
+  }
+
+  .cover-preview .layui-btn {
+    margin-top: 8px;
+  }
+
+  .editor-mode-btn.active {
+    background-color: #52c41a !important;
+    border-color: #52c41a !important;
+    color: #fff !important;
+  }
+
+  .description-editor {
+    min-height: 200px;
+  }
+</style>
+
+<%= render 'common/crop' %>
+
+<script>
+  var bannerOriginalImage = null;
+  var bannerCropRatio = '4:5';
+  var bannerCropState = {
+    x: 0, y: 0, width: 0, height: 0,
+    isDragging: false, dragType: null,
+    startX: 0, startY: 0,
+    startCrop: { x: 0, y: 0, width: 0, height: 0 }
+  };
+  var bannerFileName = '';
+
+  function openBannerCropModal(imageData, fileName) {
+    bannerFileName = fileName;
+    bannerOriginalImage = new Image();
+    bannerOriginalImage.onload = function() {
+      document.getElementById('bannerCropModal').classList.add('active');
+      initBannerCropCanvas();
+    };
+    bannerOriginalImage.src = imageData;
+  }
+
+  function closeBannerCropModal() {
+    document.getElementById('bannerCropModal').classList.remove('active');
+    bannerOriginalImage = null;
+  }
+
+  function initBannerCropCanvas() {
+    var wrapper = document.getElementById('cropCanvasWrapper');
+    var canvas = document.getElementById('cropCanvas');
+    var containerWidth = wrapper.parentElement.clientWidth - 40;
+    var containerHeight = wrapper.parentElement.clientHeight - 40;
+
+    var scale = Math.min(containerWidth / bannerOriginalImage.width, containerHeight / bannerOriginalImage.height);
+    var canvasWidth = bannerOriginalImage.width * scale;
+    var canvasHeight = bannerOriginalImage.height * scale;
+
+    canvas.width = canvasWidth;
+    canvas.height = canvasHeight;
+
+    var ctx = canvas.getContext('2d');
+    ctx.drawImage(bannerOriginalImage, 0, 0, canvasWidth, canvasHeight);
+
+    initBannerCropBox(canvasWidth, canvasHeight);
+  }
+
+  function initBannerCropBox(canvasWidth, canvasHeight) {
+    var cropWidth, cropHeight;
+    var ratioW = parseInt(bannerCropRatio.split(':')[0]);
+    var ratioH = parseInt(bannerCropRatio.split(':')[1]);
+    var targetRatio = ratioW / ratioH;
+
+    // 默认裁剪框宽度等于图片宽度（canvas宽度）
+    cropWidth = canvasWidth;
+    cropHeight = cropWidth / targetRatio;
+
+    //如果计算出的高度超过canvas高度，则按高度来调整
+    if (cropHeight > canvasHeight) {
+      cropHeight = canvasHeight;
+      cropWidth = cropHeight * targetRatio;
+    }
+
+    bannerCropState.x = (canvasWidth - cropWidth) / 2;
+    bannerCropState.y = (canvasHeight - cropHeight) / 2;
+    bannerCropState.width = cropWidth;
+    bannerCropState.height = cropHeight;
+
+    updateBannerCropBox();
+  }
+
+  function updateBannerCropBox() {
+    var cropBox = document.getElementById('cropBox');
+    cropBox.style.left = bannerCropState.x + 'px';
+    cropBox.style.top = bannerCropState.y + 'px';
+    cropBox.style.width = bannerCropState.width + 'px';
+    cropBox.style.height = bannerCropState.height + 'px';
+    updateCropPixelSize();
+  }
+
+  function updateCropPixelSize() {
+    if (!bannerOriginalImage) return;
+
+    var canvas = document.getElementById('cropCanvas');
+
+    var scaleX = bannerOriginalImage.naturalWidth / canvas.width;
+    var scaleY = bannerOriginalImage.naturalHeight / canvas.height;
+
+    var actualWidth = Math.round(bannerCropState.width * scaleX);
+    var actualHeight = Math.round(bannerCropState.height * scaleY);
+
+    var sizeDisplay = document.getElementById('cropPixelSize');
+    if (sizeDisplay) {
+      sizeDisplay.textContent = actualWidth + ' x ' + actualHeight;
+    }
+  }
+
+  // 裁剪框拖拽
+  var cropBox = document.getElementById('cropBox');
+  cropBox.addEventListener('mousedown', function(e) {
+    if (e.target.classList.contains('crop-corner')) return;
+    bannerCropState.isDragging = true;
+    bannerCropState.dragType = 'move';
+    bannerCropState.startX = e.clientX;
+    bannerCropState.startY = e.clientY;
+    bannerCropState.startCrop = { x: bannerCropState.x, y: bannerCropState.y, width: bannerCropState.width, height: bannerCropState.height };
+    e.preventDefault();
+  });
+
+  document.querySelectorAll('.crop-corner').forEach(function(corner) {
+    corner.addEventListener('mousedown', function(e) {
+      bannerCropState.isDragging = true;
+      bannerCropState.dragType = corner.classList.contains('top-left') || corner.classList.contains('top-right') ||
+                                  corner.classList.contains('bottom-left') || corner.classList.contains('bottom-right') ? corner.className.split(' ')[1] : 'move';
+      bannerCropState.startX = e.clientX;
+      bannerCropState.startY = e.clientY;
+      bannerCropState.startCrop = { x: bannerCropState.x, y: bannerCropState.y, width: bannerCropState.width, height: bannerCropState.height };
+      e.preventDefault();
+      e.stopPropagation();
+    });
+  });
+
+  document.addEventListener('mousemove', function(e) {
+    if (!bannerCropState.isDragging) return;
+    var deltaX = e.clientX - bannerCropState.startX;
+    var deltaY = e.clientY - bannerCropState.startY;
+    var canvas = document.getElementById('cropCanvas');
+    var canvasW = canvas.width;
+    var canvasH = canvas.height;
+
+    var ratioW = parseInt(bannerCropRatio.split(':')[0]);
+    var ratioH = parseInt(bannerCropRatio.split(':')[1]);
+    var targetRatio = ratioW / ratioH;
+    var minSize = 100; // 最小裁剪尺寸
+
+    if (bannerCropState.dragType === 'move') {
+      bannerCropState.x = Math.max(0, Math.min(canvasW - bannerCropState.width, bannerCropState.startCrop.x + deltaX));
+      bannerCropState.y = Math.max(0, Math.min(canvasH - bannerCropState.height, bannerCropState.startCrop.y + deltaY));
+    } else if (bannerCropState.dragType === 'top-left') {
+      // 左上角：向左/上拖动增大，向右/下拖动缩小
+      var newWidth = bannerCropState.startCrop.width - deltaX;
+      var newHeight = newWidth / targetRatio;
+      if (newWidth >= minSize && newHeight >= minSize) {
+        var newX = bannerCropState.startCrop.x + deltaX;
+        var newY = bannerCropState.startCrop.y + (bannerCropState.startCrop.height - newHeight);
+        if (newX >= 0 && newY >= 0) {
+          bannerCropState.x = newX;
+          bannerCropState.y = newY;
+          bannerCropState.width = newWidth;
+          bannerCropState.height = newHeight;
+        }
+      }
+    } else if (bannerCropState.dragType === 'top-right') {
+      // 右上角：向右/上拖动增大，向左/下拖动缩小
+      var newWidth = bannerCropState.startCrop.width + deltaX;
+      var newHeight = newWidth / targetRatio;
+      if (newWidth >= minSize && newHeight >= minSize) {
+        var newY = bannerCropState.startCrop.y + (bannerCropState.startCrop.height - newHeight);
+        if (bannerCropState.startCrop.x + newWidth <= canvasW && newY >= 0) {
+          bannerCropState.y = newY;
+          bannerCropState.width = newWidth;
+          bannerCropState.height = newHeight;
+        }
+      }
+    } else if (bannerCropState.dragType === 'bottom-left') {
+      // 左下角：向左/下拖动增大，向右/上拖动缩小
+      var newWidth = bannerCropState.startCrop.width - deltaX;
+      var newHeight = newWidth / targetRatio;
+      if (newWidth >= minSize && newHeight >= minSize) {
+        var newX = bannerCropState.startCrop.x + deltaX;
+        if (newX >= 0 && bannerCropState.startCrop.y + newHeight <= canvasH) {
+          bannerCropState.x = newX;
+          bannerCropState.width = newWidth;
+          bannerCropState.height = newHeight;
+        }
+      }
+    } else if (bannerCropState.dragType === 'bottom-right') {
+      // 右下角：向右/下拖动增大，向左/上拖动缩小
+      var newWidth = bannerCropState.startCrop.width + deltaX;
+      var newHeight = newWidth / targetRatio;
+      if (newWidth >= minSize && newHeight >= minSize) {
+        if (bannerCropState.startCrop.x + newWidth <= canvasW && bannerCropState.startCrop.y + newHeight <= canvasH) {
+          bannerCropState.width = newWidth;
+          bannerCropState.height = newHeight;
+        }
+      }
+    }
+
+    updateBannerCropBox();
+  });
+
+  document.addEventListener('mouseup', function() {
+    bannerCropState.isDragging = false;
+  });
+
+  function confirmBannerCrop() {
+    var canvas = document.getElementById('cropCanvas');
+    var scale = canvas.width / bannerOriginalImage.width;
+
+    var cropX = bannerCropState.x / scale;
+    var cropY = bannerCropState.y / scale;
+    var cropW = bannerCropState.width / scale;
+    var cropH = bannerCropState.height / scale;
+
+    var resultCanvas = document.createElement('canvas');
+    resultCanvas.width = cropW;
+    resultCanvas.height = cropH;
+
+    var ctx = resultCanvas.getContext('2d');
+    ctx.drawImage(bannerOriginalImage, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+
+    // 转换为Blob并上传
+    resultCanvas.toBlob(function(blob) {
+      var formData = new FormData();
+      formData.append('file', blob, bannerFileName);
+
+      var csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+      fetch('<%= upload_img_files_path %>', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-CSRF-Token': csrfToken
+        }
+      })
+      .then(function(response) { return response.json(); })
+      .then(function(res) {
+        if (res.success) {
+          $('#banner_image_url').val(res.url);
+          $('#banner_image_name').val(res.name);
+          $('#banner-preview').show();
+          $('#banner-img').attr('src', res.preivew_url);
+          //document.getElementById('upload-banner').style.display = 'none';
+          layui.layer.msg('Banner裁剪上传成功');
+        } else {
+          layui.layer.msg(res.message || '上传失败', {icon: 2});
+        }
+        closeBannerCropModal();
+      })
+      .catch(function(err) {
+        layui.layer.msg('上传失败', {icon: 2});
+        closeBannerCropModal();
+      });
+    }, 'image/jpeg', 0.9);
+  }
+
+  layui.use(['form', 'upload', 'layer'], function(){
+    var form = layui.form,
+        upload = layui.upload,
+        layer = layui.layer,
+        $ = layui.$;
+
+    form.render();
+
+    document.getElementById('upload-banner').addEventListener('click', function() {
+      var input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.onchange = function(e) {
+        var file = e.target.files[0];
+        if (!file) return;
+
+        // 验证文件类型
+        var allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+        if (!allowedTypes.includes(file.type)) {
+          layer.msg('仅支持 JPG、PNG、WebP 格式', {icon: 2});
+          return;
+        }
+
+        // 验证文件大小 (5MB)
+        if (file.size > 5 * 1024 * 1024) {
+          layer.msg('文件大小不能超过 5MB', {icon: 2});
+          return;
+        }
+
+        var reader = new FileReader();
+        reader.onload = function(event) {
+          openBannerCropModal(event.target.result, file.name);
+        };
+        reader.readAsDataURL(file);
+      };
+      input.click();
+    });
+
+    $('.cover-remove').on('click', function(){
+      $('#banner_image_url').val('');
+      $('#banner_image_name').val('');
+      $('#banner-preview').hide();
+    });
+
+    // 图片简介上传
+    upload.render({
+      elem: '#upload-intro',
+      url: '<%= upload_img_files_path %>',
+      accept: 'images',
+      exts: 'jpg|jpeg|png',
+      size: 5 * 1024,
+      done: function(res){
+        if(res.success){
+          $('#intro_image_url').val(res.url);
+          $('#intro_image_name').val(res.name);
+          $('#intro-preview').show();
+          $('#intro-img').attr('src', res.preivew_url);
+          layer.msg('图片简介上传成功');
+        } else {
+          layer.msg(res.message || '上传失败', {icon: 2});
+        }
+      },
+      error: function(){
+        layer.msg('上传失败', {icon: 2});
+      }
+    });
+
+    $('.intro-remove').on('click', function(){
+      $('#intro_image_url').val('');
+      $('#intro_image_name').val('');
+      $('#intro-preview').hide();
+    });
+
+    var wangEditor = window.wangEditor;
+    var E = wangEditor;
+
+    var editor = E.createEditor({
+      selector: '#wang-editor-content',
+      html: '<%= @compilation.content_description.blank? ? "" : @compilation.content_description.html_safe %>',
+      onChange: (editor) => {
+        const html = editor.getHtml()
+        this.textareaTarget.value = html
+      },
+      config: {
+        placeholder: '请输入合辑简介...',
+        MENU_CONF: {
+          uploadImage: {
+            server: '<%= upload_open_img_files_path %>',
+            fieldName: 'file',
+            maxFileSize: 5 * 1024 * 1024, // 5MB
+            headers: {
+              'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+            },
+            customInsert(res, insertFn) {
+              if (res.errno === 0 || res.success) {
+                var url = res.url || (res.data && res.data[0] && res.data[0].url);
+                if (url) {
+                  insertFn(url, res.name || '', url);
+                }
+              } else {
+                layer.msg(res.message || '上传失败', { icon: 2 });
+              }
+            }
+          }
+        }
+      }
+    });
+    //editor.setHtml('<%= j @compilation.content_description.to_s %>');
+
+    var toolbar = E.createToolbar({
+      editor: editor,
+      selector: '#wang-editor-toolbar',
+      config: {
+        excludeKeys: [
+          'group-video',
+          'todo',
+          'emotion',
+          'codeBlock',
+          'insertTable',
+          'undo',
+          'redo'
+        ]
+      }
+    });
+
+    form.on('submit(submit-form)', function(data){
+      // 处理标签数据
+      if(data.field.tags){
+        data.field.tags = data.field.tags.split(',').map(function(t){ return t.trim(); }).filter(function(t){ return t; });
+      }
+
+      $('#content-description-hidden').val(editor.getHtml());
+
+      return true;
+    });
+  });
+</script>

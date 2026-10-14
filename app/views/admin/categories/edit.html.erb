@@ -1,0 +1,21 @@
+<div class="layui-tab">
+  <div class="x-nav">
+    <span class="layui-breadcrumb">
+      <a href="">内容管理</a>
+      <%= link_to "分类管理", :admin_categories %>
+      <a><cite>修改分类</cite></a>
+    </span>
+    <%= render 'common/user_info' %>
+  </div>
+
+  <div class="x-body">
+    <%= render 'form' %>
+  </div>
+</div>
+
+<script>
+  layui.use(['form'], function(){
+    var form = layui.form;
+    form.render();
+  });
+</script>

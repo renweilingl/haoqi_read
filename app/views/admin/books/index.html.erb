@@ -1,0 +1,41 @@
+<div class="layui-tab">
+  <div class="x-nav">
+    <span class="layui-breadcrumb">
+      <%= link_to "合辑管理", :admin_compilations %>
+      <a><cite><%= @compilation.name %></cite></a>
+      <a><cite>合辑内容</cite></a>
+    </span>
+    <%= render 'common/user_info' %>
+  </div>
+  <div class="x-body">
+    <div class="layui-btn-container">
+       <a href="<%= new_admin_compilation_book_path(@compilation) %>" class="layui-btn layui-btn-normal">
+        <i class="layui-icon layui-icon-add-1"></i> 添加内容
+      </a>
+      <%= link_to "返回列表", admin_compilations_path, class: "layui-btn layui-btn-primary" %>
+    </div>
+
+    <table class="layui-table">
+      <thead>
+        <tr>
+          <th>分类</th>
+          <th>名称</th>
+          <th width="120" style="text-align:center;">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @books.each do |x| %>
+          <tr>
+            <td><%= x.category.name %></td>
+            <td><%= x.name %></td>
+            <td style="text-align:center;">
+              <div class="layui-btn-group">
+                <%= link_to '删除', admin_compilation_book_path(@compilation, x), method: :delete, class: "layui-btn layui-btn-sm layui-btn-danger", title: "删除", data: { confirm: "确定要删除此内容吗？" } %>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>

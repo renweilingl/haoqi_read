@@ -1,0 +1,83 @@
+<div class="layui-tab">
+  <div class="x-nav">
+    <span class="layui-breadcrumb">
+      <a>图书管理</a>
+      <a><cite>章节管理<span><%= @book.name %></span></cite></a>
+    </span>
+    <%= render 'common/user_info' %>
+  </div>
+
+  <div class="x-body">
+    <div class="layui-row">
+      <div class="layui-col-xs9">
+      </div>
+      <div class="layui-col-3 text-right">
+        <%= link_to new_chapter_admin_picture_book_path(@book), class: 'layui-btn layui-bg-blue' do %>
+          <i class="layui-icon"></i>新增单本
+        <% end %>
+      </div>
+    </div>
+
+    <table class="layui-table">
+      <thead>
+        <tr>
+          <th width="60">序号</th>
+          <th>章节名称</th>
+          <th width="60">封面</th>
+          <th width="220">内容</th>
+          <th width="80">类型</th>
+          <th width="130">创建时间</th>
+          <th width="120" style="text-align:center;">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @chapters.each do |x| %>
+          <tr>
+            <td><%= x.sn %></td>
+            <td><%= x.name %></td>
+            <td><img src="<%= FileMap.new(x.cover_image_url, 'img').secrity_src %>"></td>
+            <td><%= x.content_file_name %></td>
+            <td><%= x.content_file_type %></td>
+            <td><%= x.created_at.strftime("%Y-%m-%d")%></td>
+            <td style="text-align:center;">
+              <div class="layui-btn-group">
+                <%= link_to "编辑", edit_chapter_admin_picture_book_path(x), class: "layui-btn layui-btn-sm" %>
+                <%= link_to '删除', admin_chapter_path(x), method: :delete, class: "layui-btn layui-btn-sm", title: "删除", data: { confirm: "确定要删除该内容吗？此操作不可恢复。" } %>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+    <% if @chapters.total_pages > 1 %>
+      <div id="pagination" style="margin-top: 20px; text-align: center;"></div>
+    <% end %>
+  </div>
+</div>
+
+<script>
+  layui.use(['laypage', 'form', 'layer'], function(){
+    var laypage = layui.laypage,
+        form = layui.form,
+        layer = layui.layer;
+
+    <% if @chapters.total_pages > 1 %>
+    laypage.render({
+      elem: 'pagination',
+      count: <%= @chapters.total_entries %>,
+      limit: <%= @chapters.per_page %>,
+      curr: <%= @chapters.current_page %>,
+      layout: ['count', 'prev', 'page', 'next', 'limit', 'skip'],
+      jump: function(obj, first){
+        if(!first){
+          var url = new URL(window.location.href);
+          url.searchParams.set('page', obj.curr);
+          url.searchParams.set('per_page', obj.limit);
+          window.location.href = url.toString();
+        }
+      }
+    });
+    <% end %>
+  });
+</script>

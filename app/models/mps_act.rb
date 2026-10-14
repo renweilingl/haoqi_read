@@ -1,0 +1,2 @@
+class MpsAct < ApplicationRecord
+end

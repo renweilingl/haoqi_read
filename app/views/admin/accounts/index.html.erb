@@ -1,0 +1,95 @@
+<div class="layui-tab">
+  <div class="x-nav">
+    <span class="layui-breadcrumb">
+      <a href="">权限设置</a>
+      <a><cite>账号管理</cite></a>
+    </span>
+    <%= render 'common/user_info' %>
+  </div>
+  <div class="x-body">
+    <div class="layui-row text-right">
+      <%= link_to :new_admin_account, class: 'layui-btn layui-bg-blue' do %>
+        <i class="layui-icon layui-icon-add-1"></i>新建账号
+      <% end %>
+    </div> 
+
+    <table class="layui-table">
+      <thead>
+        <tr>
+          <th width="80">ID</th>
+          <th>用户名</th>
+          <th>邮箱</th>
+          <th>角色</th>
+          <th>创建时间</th>
+          <th width="180" style="text-align:center;">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @users.each do |user| %>
+          <tr>
+            <td><%= user.id %></td>
+            <td>
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 36px; height: 36px; background: linear-gradient(135deg, #dcfce7, #bbf7d0); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #16a34a; font-weight: bold;">
+                      <%= user.name[0].upcase %>
+                    </div>
+                    <span><%= user.name %></span>
+                  </div>
+                </td>
+            <td><%= user.email %></td>
+            <td>
+              <%
+                role_colors = {
+                  'super_admin' => '#fef3c7',
+                  'editor' => '#dbeafe',
+                  'operator' => '#d1fae5',
+                  'finance' => '#fce7f3'
+                }
+                role_text_colors = {
+                  'super_admin' => '#92400e',
+                  'editor' => '#1e40af',
+                  'operator' => '#065f46',
+                  'finance' => '#9d174d'
+                }
+              %>
+              <span class="layui-badge" style="background: <%= role_colors[user.role] || '#e5e7eb' %>; color: <%= role_text_colors[user.role] || '#374151' %>;">
+                <%= user.role_name %>
+              </span>
+            </td>
+            <td><%= user.created_at.strftime("%Y-%m-%d %H:%M") %></td>
+            <td style="text-align:center;">
+              <div class="layui-btn-group">
+                <%= link_to '详情', admin_account_path(user), class: "layui-btn layui-btn-sm" %>
+                <% if policy(user).update? %>
+                  <%= link_to '编辑', edit_admin_account_path(user), class: "layui-btn layui-btn-sm" %>
+                <% end %>
+                <% if false %>
+                  <%= link_to reset_password_admin_account_path(user), method: :post, class: "layui-btn layui-btn-sm", title: "重置密码", data: { confirm: "确定要重置此账号的密码吗？" } do %>
+                    <i class="layui-icon layui-icon-key"></i>
+                  <% end %>
+                <% end %>
+                <% if current_user.super_admin? && user.id != current_user.id %>
+                  <%= link_to '删除', admin_account_path(user), method: :delete, class: "layui-btn layui-btn-sm", title: "删除", data: { confirm: "确定要删除此账号吗？此操作不可恢复。" } %>
+                <% end %>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+    <!--div id="demo-laypage-theme-1"></div-->
+  </div>
+</div>
+
+<!--script>
+  layui.use(['laypage', 'laydate'],function(){
+      var laypage = layui.laypage;
+      laypage.render({
+        elem: 'demo-laypage-theme-1',
+        count: 100,
+        layout: ['count', 'prev', 'page', 'next', 'limit', 'skip'],
+        theme: '#1E9FFF'
+      });
+  })
+</script-->

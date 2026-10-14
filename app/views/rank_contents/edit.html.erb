@@ -1,0 +1,15 @@
+<div class="layui-tab">
+  <div class="x-nav">
+    <span class="layui-breadcrumb">
+      <a href="/grades">排行榜</a>
+      <%= link_to @grade.name, grade_ranks_path(@grade) %>
+      <a><cite><%= @rank.name %></cite></a>
+      <a><cite>修改内容</cite></a>
+    </span>
+    <%= render 'common/user_info' %>
+  </div> 
+
+  <div class="x-body">
+    <%= render 'form' %>
+  </div>
+</div>

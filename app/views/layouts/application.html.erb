@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html class="layui-layout-body">
+  <head>
+    <title><%= content_for(:title) || "少年越读" %></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta charset="utf-8">
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= yield :head %>
+
+    <link rel="icon" href="/icon.png" type="image/png">
+
+    <%= stylesheet_link_tag 'application', media: 'all' %>
+    <!--link rel="stylesheet" href="/assets/v1/layui.css"-->
+    <%= javascript_include_tag 'application', 'data-turbolinks-track': 'reload' %>
+  </head>
+
+  <body>
+    <%= render 'layouts/sidebar' %>
+
+    <div class="page-content">
+        <% if notice %>
+          <div class="flash-messages">
+            <div class="flash-notice">
+              <i class="layui-icon layui-icon-ok-circle"></i>
+              <%= notice %>
+            </div>
+          </div>
+        <% end %>
+
+        <% if alert %>
+          <div class="flash-messages">
+            <div class="flash-alert">
+              <i class="layui-icon layui-icon-close-circle"></i>
+              <%= alert %>
+            </div>
+          </div>
+        <% end %>
+      <%= yield %>
+    </div>
+
+    <div style="position: fixed;bottom: 20px; left: 50%;">
+      <a href="https://beian.miit.gov.cn" style="color: #8e8e8e;cursor: pointer;text-decoration: none;">浙ICP备2024092258号-7</a>
+    </div>
+  </body>
+</html>
+
+<script type="text/javascript">
+    var url = window.location;
+    var element = $("#side-nav a.sub-link").filter(function() {
+        var a = url.href.match(this.href);
+        return a != null
+    }).parent("li").addClass('menu-current').parent().show().parent().addClass("open");
+
+    var element = $("#side-nav a.main-link").filter(function() {
+        var a = url.href.match(this.href);
+        return a != null
+    }).parent("li").addClass('menu-current').addClass("open");
+
+    setTimeout(function() {
+        $('.flash-messages').fadeOut(300, function(){
+          $(this).remove();
+        });
+    }, 3000);
+</script>

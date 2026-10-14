@@ -1,0 +1,121 @@
+<div class="layui-tab">
+  <div class="x-nav">
+    <span class="layui-breadcrumb">
+      <a href="">内容管理</a>
+      <a><cite>有声视频</cite></a>
+    </span>
+    <%= render 'common/user_info' %>
+  </div>
+  <div class="x-body">
+    <div class="layui-row">
+      <div class="layui-col-xs9">
+        <%= search_form_for(@q, url: :admin_media_books, :html => {class: :'layui-form layui-col-md12'}) do |f| %>
+          <div class="layui-input-inline" style="width: 140px;">
+            <%= f.select :category_id_eq, options_for_select(Category.where(name: ["有声", "视频"]).map { |x| [x.name, x.id] }, @q.category_id_eq), { include_blank: "图书分类" } %>
+          </div>
+          <div class="layui-input-inline" style="width: 120px;">
+            <%= f.select :is_free_eq, options_for_select([['免费', true], ['付费', false]], @q.is_free_eq), { include_blank: "付费状态" } %>
+          </div>
+          <div class="layui-input-inline">
+            <%= f.text_field :name_cont, class: :'layui-input', placeholder: "图书名称" %>
+          </div>
+          <button class="layui-btn layui-bg-blue" lay-submit lay-filter="demo-table-search"><i class="layui-icon">&#xe615;</i>查询</button>
+          <%= link_to "重置", :admin_media_books, class: "layui-btn layui-btn-primary" %>
+        <% end %>
+      </div>
+      <div class="layui-col-3 text-right">
+        <%= link_to :new_admin_media_book, class: 'layui-btn layui-bg-blue' do %>
+          <i class="layui-icon"></i>新增图书
+        <% end %>
+      </div>
+    </div>
+
+    <table class="layui-table">
+      <thead>
+        <tr>
+          <th width="60">ID</th>
+          <th>图书信息</th>
+          <th>年级范围</th>
+          <th width="80">类型</th>
+          <th>二级分类</th>
+          <th width="80">状态</th>
+          <th width="80">付费类型</th>
+          <th width="130">创建时间</th>
+          <th width="200" style="text-align:center;">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @books.each do |book| %>
+          <tr>
+            <td><%= book.id %></td>
+            <td>
+              <div style="display: flex; align-items: flex-start; gap: 10px;">
+                <% if book.cover_image_url.present? %>
+                  <img src="<%= FileMap.new(book.cover_image_url, "img").secrity_src %>" style="width: 48px; height: 64px; object-fit: cover; border-radius: 4px;" />
+                <% else %>
+                  <div style="width: 48px; height: 64px; background-color: #52c41a20; border-radius: 4px; display: flex; align-items: center; justify-content: center;">
+                    <i class="layui-icon layui-icon-picture" style="color: #52c41a; font-size: 20px;"></i>
+                  </div>
+                <% end %>
+                <div>
+                  <div style="font-weight: 500; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    <%= book.name %>
+                  </div>
+                  <div style="font-size: 12px; color: #9ca3af;">
+                    <% if book.author %>
+                      <span><i class="layui-icon layui-icon-group"></i> <%= book.author.name %></span>
+                    <% end %>
+                  </div>
+                </div>
+              </div>
+            </td>
+            <td><%= book.grades.pluck(:name).join(" | ") %></td>
+            <td><%= book.category.name %></td>
+            <td><%= book.category_subs.pluck(:name).join(" | ") %></td>
+            <td><%= book.is_published? ? "发布" : "下线" %></td>
+            <td><%= book.is_free? ? "免费" : "付费" %></td>
+            <td><%= book.created_at.strftime("%Y-%m-%d") %></td>
+            <td style="text-align:center;">
+              <div class="layui-btn-group">
+                <%= link_to "内容管理", admin_media_book_chapters_path(book), class: "layui-btn layui-btn-sm" %>
+                <%= link_to "编辑", edit_admin_media_book_path(book), class: "layui-btn layui-btn-sm" %>
+                <%= link_to '删除', admin_media_book_path(book), method: :delete, class: "layui-btn layui-btn-sm", title: "删除", data: { confirm: "确定要删除图书吗？此操作不可恢复。" } %>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+    <% if @books.total_pages > 1 %>
+      <div id="pagination" style="margin-top: 20px; text-align: center;"></div>
+    <% end %>
+  </div>
+</div>
+
+<script>
+  layui.use(['laypage', 'form', 'layer'], function(){
+    var laypage = layui.laypage,
+        form = layui.form,
+        layer = layui.layer;
+
+    // 分页
+    <% if @books.total_pages > 1 %>
+    laypage.render({
+      elem: 'pagination',
+      count: <%= @books.total_entries %>,
+      limit: <%= @books.per_page %>,
+      curr: <%= @books.current_page %>,
+      layout: ['count', 'prev', 'page', 'next', 'limit', 'skip'],
+      jump: function(obj, first){
+        if(!first){
+          var url = new URL(window.location.href);
+          url.searchParams.set('page', obj.curr);
+          url.searchParams.set('per_page', obj.limit);
+          window.location.href = url.toString();
+        }
+      }
+    });
+    <% end %>
+  });
+</script>

@@ -1,0 +1,16 @@
+<div class="layui-tab">
+  <div class="x-nav">
+    <span class="layui-breadcrumb">
+      <%= link_to "年级管理", :admin_grades %>
+      <%= link_to @grade.name, admin_grade_recommends_path(@grade) %>
+      <%= link_to @recommend.name, admin_grade_recommend_content_groups_path(@grade, @recommend) %>
+      <%= link_to @content_group.name, admin_grade_recommend_content_group_path(@grade, @recommend, @content_group) %>
+      <a><cite>修改内容</cite></a>
+    </span>
+    <%= render 'common/user_info' %>
+  </div> 
+
+  <div class="x-body">
+    <%= render 'form' %>
+  </div>
+</div>

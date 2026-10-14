@@ -1,0 +1,24 @@
+<%= form_for(@book_level, url: @book_level.new_record? ? :admin_book_levels : :admin_book_level,method: @book_level.new_record? ? :post : :put, :html => {:class => "layui-form"}) do |f| %>
+  <div class="layui-form-item">
+    <label class="layui-form-label"><span class="required">*</span>分级名称</label>
+    <div class="layui-input-block">
+    <%= f.text_field :name, class: "layui-input", placeholder: "请输入分级名称", lay_verify: "required", lay_reqtext: "分级名称不能为空" %>
+    </div>
+  </div>
+
+  <div class="layui-form-item layui-col-md6">
+    <label class="layui-form-label">序号</label>
+    <div class="layui-input-block">
+      <%= f.number_field :sn, class: "layui-input", min: 0, step: 1, required: true %>
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <div class="layui-input-block">
+      <button type="submit" class="layui-btn layui-bg-blue" lay-submit lay-filter="submit-content">
+        <i class="layui-icon layui-icon-release"></i>提交保存
+      </button>
+      <%= link_to "取消",  :admin_book_levels, class: "layui-btn layui-btn-primary" %>
+    </div>
+  </div>
+<% end %>

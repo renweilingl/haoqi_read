@@ -1,0 +1,31 @@
+<%= form_for(@channel, url: @channel.new_record? ? :admin_channels : :admin_channel,method: @channel.new_record? ? :post : :put, :html => {:class => "layui-form"}) do |f| %> 
+  <div class="layui-form-item">
+    <%= f.label :name, "渠道名称", class: "layui-form-label" %>
+    <div class="layui-input-block">
+      <%= f.text_field :name, class: "layui-input", placeholder: "请输入渠道名称", lay_verify: "required", lay_reqtext: "名称不能为空" %>
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <%= f.label :name, "版本", class: "layui-form-label" %>
+    <div class="layui-input-block">
+      <%= f.text_field :version, class: "layui-input", placeholder: "请输入渠道版本号", lay_verify: "required", lay_reqtext: "版本号不能为空" %>
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <div class="layui-input-block">
+      <button type="submit" class="layui-btn layui-bg-blue" lay-submit lay-filter="submit-content">
+        <i class="layui-icon layui-icon-release"></i>提交保存
+      </button>
+      <%= link_to "取消", :admin_channels, class: "layui-btn layui-btn-primary" %>
+    </div>
+  </div>
+<% end %>
+
+<script>
+  layui.use(['form'], function(){
+    var form = layui.form;
+    form.render();
+  });
+</script>

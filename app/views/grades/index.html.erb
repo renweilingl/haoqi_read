@@ -1,0 +1,43 @@
+<div class="layui-tab">                                                          
+  <div class="x-nav">
+    <span class="layui-breadcrumb">                                              
+      <a href="">内容管理</a>
+      <a><cite>排行榜</cite></a>
+    </span>
+    <%= render 'common/user_info' %>
+  </div>
+
+  <div class="x-body">
+    <table class="layui-table">
+      <thead>
+        <tr>
+          <th width="80">ID</th>
+          <th>年级</th>
+          <th>图书</th>
+          <th>有声</th>
+          <th>漫画</th>
+          <th width="100" style="text-align:center;">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @grades.each do |grade| %>
+          <tr>
+            <td><%= grade.id %></td>
+            <td><%= grade.name %></td>
+            <td><%= grade.book_ranks.pluck(:name).join(" | ") %></td>
+            <td><%= grade.audio_ranks.pluck(:name).join(" | ") %></td>
+            <td><%= grade.cartoon_ranks.pluck(:name).join(" | ") %></td>
+            <td style="text-align:center;">
+              <div class="layui-btn-group">
+                <%= link_to grade_ranks_path(grade), class: "layui-btn layui-btn-sm" do %>
+                  <i class="layui-icon layui-icon-tree"></i>管理
+                <% end %>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>
+

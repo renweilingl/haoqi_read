@@ -1,0 +1,264 @@
+<% content_for :title, "仪表盘" %>
+
+<!-- 顶部统计卡片 -->
+<div class="layui-row layui-col-space15">
+  <div class="layui-col-md3">
+    <div class="stat-card" style="background: linear-gradient(135deg, #16a34a, #10b981);">
+      <div class="stat-icon"><i class="layui-icon layui-icon-user"></i></div>
+      <div class="stat-content">
+        <div class="stat-value">1</div>
+        <div class="stat-label">总账号数</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="layui-col-md3">
+    <div class="stat-card" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">
+      <div class="stat-icon"><i class="layui-icon layui-icon-component"></i></div>
+      <div class="stat-content">
+        <div class="stat-value"><%= Category.count %></div>
+        <div class="stat-label">分类总数</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="layui-col-md3">
+    <div class="stat-card" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+      <div class="stat-icon"><i class="layui-icon layui-icon-read"></i></div>
+      <div class="stat-content">
+        <div class="stat-value"><%= Category.by_level(1).count %></div>
+        <div class="stat-label">年级分类</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="layui-col-md3">
+    <div class="stat-card" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+      <div class="stat-icon"><i class="layui-icon layui-icon-group"></i></div>
+      <div class="stat-content">
+        <div class="stat-value">2</div>
+        <div class="stat-label">权限总数</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 主要内容区域 -->
+<div class="layui-row layui-col-space15" style="margin-top: 15px;">
+  <!-- 左侧：快速操作和最新动态 -->
+  <div class="layui-col-md8">
+    <!-- 快速操作 -->
+    <div class="layui-card">
+      <div class="layui-card-header">
+        <i class="layui-icon layui-icon-util"></i>
+        快速操作
+      </div>
+      <div class="layui-card-body">
+        <div class="layui-btn-container">
+          <%= link_to new_admin_account_path, class: "layui-btn layui-btn-normal" do %>
+            <i class="layui-icon layui-icon-add-1"></i>
+            新建账号
+          <% end %>
+
+          <% if policy(Category).create? %>
+            <%= link_to new_admin_category_path(level: 1), class: "layui-btn layui-btn-warm" do %>
+              <i class="layui-icon layui-icon-add-1"></i>
+              新建分类
+            <% end %>
+          <% end %>
+
+          <%= link_to admin_accounts_path, class: "layui-btn layui-btn-primary" do %>
+            <i class="layui-icon layui-icon-list"></i>
+            账号管理
+          <% end %>
+
+          <%= link_to admin_categories_path, class: "layui-btn layui-btn-primary" do %>
+            <i class="layui-icon layui-icon-template-1"></i>
+            分类管理
+          <% end %>
+
+          <%= link_to admin_permissions_path, class: "layui-btn layui-btn-primary" do %>
+            <i class="layui-icon layui-icon-set"></i>
+            权限管理
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <!-- 最新账号 -->
+    <div class="layui-card" style="margin-top: 15px;">
+      <div class="layui-card-header">
+        <i class="layui-icon layui-icon-user"></i>
+        最新账号
+      </div>
+      <div class="layui-card-body">
+        <table class="layui-table" lay-skin="line">
+          <thead>
+            <tr>
+              <th>用户名</th>
+              <th>角色</th>
+              <th>创建时间</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @recent_accounts = User.order(created_at: :desc).limit(5) %>
+            <% if @recent_accounts.any? %>
+              <% @recent_accounts.each do |account| %>
+                <tr>
+                  <td>
+                    <i class="layui-icon layui-icon-username"></i>
+                    <%= link_to account.name, admin_account_path(account), style: "color: #16a34a;" %>
+                  </td>
+                  <td>
+                    <span class="layui-badge layui-badge-green"><%= account.role %></span>
+                  </td>
+                  <td><%= account.created_at.strftime('%Y-%m-%d %H:%M') %></td>
+                </tr>
+              <% end %>
+            <% else %>
+              <tr>
+                <td colspan="3" style="text-align: center; color: #999;">暂无数据</td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 右侧：系统信息和帮助 -->
+  <div class="layui-col-md4">
+    <!-- 系统信息 -->
+    <div class="layui-card">
+      <div class="layui-card-header">
+        <i class="layui-icon layui-icon-set"></i>
+        系统信息
+      </div>
+      <div class="layui-card-body">
+        <table class="layui-table" lay-skin="nob">
+          <tr>
+            <td style="width: 80px;">系统版本</td>
+            <td>Rails 7.1.4</td>
+          </tr>
+          <tr>
+            <td>Ruby 版本</td>
+            <td>Ruby 3.2.2</td>
+          </tr>
+          <tr>
+            <td>Layui 版本</td>
+            <td>v2.9.8</td>
+          </tr>
+          <tr>
+            <td>数据库</td>
+            <td>MySQL 8.0</td>
+          </tr>
+          <tr>
+            <td>运行环境</td>
+            <td><%= Rails.env %></td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- 使用帮助 -->
+    <div class="layui-card" style="margin-top: 15px;">
+      <div class="layui-card-header">
+        <i class="layui-icon layui-icon-help"></i>
+        使用帮助
+      </div>
+      <div class="layui-card-body">
+        <div class="layui-timeline">
+          <div class="layui-timeline-item">
+            <i class="layui-icon layui-timeline-axis layui-icon-circle"></i>
+            <div class="layui-timeline-content layui-text">
+              <h3 class="layui-timeline-title">账号管理</h3>
+              <p>创建和管理系统账号，分配不同角色和权限。</p>
+            </div>
+          </div>
+          <div class="layui-timeline-item">
+            <i class="layui-icon layui-timeline-axis layui-icon-circle"></i>
+            <div class="layui-timeline-content layui-text">
+              <h3 class="layui-timeline-title">分类管理</h3>
+              <p>管理内容分类，支持年级、学科、主题等多种分类类型。</p>
+            </div>
+          </div>
+          <div class="layui-timeline-item">
+            <i class="layui-icon layui-timeline-axis layui-icon-circle"></i>
+            <div class="layui-timeline-content layui-text">
+              <h3 class="layui-timeline-title">权限管理</h3>
+              <p>配置系统权限，控制不同角色的访问范围。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .stat-card {
+    padding: 20px;
+    border-radius: 8px;
+    color: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+
+  .stat-icon {
+    width: 60px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .stat-icon i {
+    font-size: 32px;
+  }
+
+  .stat-content {
+    flex: 1;
+  }
+
+  .stat-value {
+    font-size: 32px;
+    font-weight: bold;
+    margin-bottom: 5px;
+  }
+
+  .stat-label {
+    font-size: 14px;
+    opacity: 0.9;
+  }
+
+  .layui-btn-container .layui-btn {
+    margin: 5px;
+  }
+
+  .layui-table i {
+    margin-right: 5px;
+    color: #16a34a;
+  }
+</style>
+
+<script>
+  layui.use(['element', 'layer'], function(){
+    var element = layui.element,
+        layer = layui.layer;
+
+    // 快捷操作提示
+    document.querySelectorAll('.layui-btn').forEach(function(btn) {
+      btn.addEventListener('mouseenter', function(){
+        var text = this.textContent.trim();
+        layer.tips('点击' + text, this, {
+          tips: 1,
+          time: 1000
+        });
+      });
+    });
+  });
+</script>

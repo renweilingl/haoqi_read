@@ -1,0 +1,239 @@
+<div class="layui-tab">
+  <div class="x-nav">
+    <span class="layui-breadcrumb">
+      <a href="">统计报表</a>
+      <a><cite>用户注册分析</cite></a>
+    </span>
+    <%= render 'common/user_info' %>
+  </div>
+  
+  <div class="x-body">
+    <!-- 控制面板 -->
+    <div class="layui-row layui-col-space10" style="margin-bottom: 20px;">
+      <div class="layui-col-md6">
+        <label class="layui-form-label">统计维度:</label>
+        <div class="layui-input-inline">
+          <a href="<%= admin_user_stats_path(period: 'daily', range: @range) %>" 
+             class="layui-btn layui-btn-sm <%= @period == 'daily' ? 'layui-btn-normal' : 'layui-btn-primary' %>">按天</a>
+          <a href="<%= admin_user_stats_path(period: 'weekly', range: @range) %>" 
+             class="layui-btn layui-btn-sm <%= @period == 'weekly' ? 'layui-btn-normal' : 'layui-btn-primary' %>">按周</a>
+          <a href="<%= admin_user_stats_path(period: 'monthly', range: @range) %>" 
+             class="layui-btn layui-btn-sm <%= @period == 'monthly' ? 'layui-btn-normal' : 'layui-btn-primary' %>">按月</a>
+        </div>
+      </div>
+      
+      <div class="layui-col-md6">
+        <label class="layui-form-label">时间范围:</label>
+        <div class="layui-input-inline">
+          <select name="range" lay-filter="rangeSelect" onchange="changeRange(this.value)">
+            <% if @period == 'daily' %>
+              <option value="7" <%= @range == 7 ? 'selected' : '' %>>最近7天</option>
+              <option value="14" <%= @range == 14 ? 'selected' : '' %>>最近14天</option>
+              <option value="30" <%= @range == 30 ? 'selected' : '' %>>最近30天</option>
+              <option value="60" <%= @range == 60 ? 'selected' : '' %>>最近60天</option>
+              <option value="90" <%= @range == 90 ? 'selected' : '' %>>最近90天</option>
+            <% elsif @period == 'weekly' %>
+              <option value="4" <%= @range == 4 ? 'selected' : '' %>>最近4周</option>
+              <option value="8" <%= @range == 8 ? 'selected' : '' %>>最近8周</option>
+              <option value="12" <%= @range == 12 ? 'selected' : '' %>>最近12周</option>
+              <option value="24" <%= @range == 24 ? 'selected' : '' %>>最近24周</option>
+            <% else %>
+              <option value="6" <%= @range == 6 ? 'selected' : '' %>>最近6个月</option>
+              <option value="12" <%= @range == 12 ? 'selected' : '' %>>最近12个月</option>
+              <option value="24" <%= @range == 24 ? 'selected' : '' %>>最近24个月</option>
+            <% end %>
+          </select>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 统计摘要卡片 -->
+    <div class="layui-row layui-col-space10" style="margin-bottom: 20px;">
+      <div class="layui-col-md3">
+        <div class="layui-card">
+          <div class="layui-card-header">总注册量</div>
+          <div class="layui-card-body">
+            <h2 style="color: #1E9FFF; margin: 0;"><%= @stats[:total] %></h2>
+            <p style="color: #999; font-size: 12px;">统计周期内</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="layui-col-md3">
+        <div class="layui-card">
+          <div class="layui-card-header">平均注册量</div>
+          <div class="layui-card-body">
+            <h2 style="color: #5FB878; margin: 0;"><%= @stats[:average] %></h2>
+            <p style="color: #999; font-size: 12px;">每<%= period_label_text(@period) %></p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="layui-col-md3">
+        <div class="layui-card">
+          <div class="layui-card-header">最高注册量</div>
+          <div class="layui-card-body">
+            <h2 style="color: #FFB800; margin: 0;"><%= @stats[:max][:count] %></h2>
+            <p style="color: #999; font-size: 12px;"><%= stat_extremum_label(@stats[:max], @period) %></p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="layui-col-md3">
+        <div class="layui-card">
+          <div class="layui-card-header">最低注册量</div>
+          <div class="layui-card-body">
+            <h2 style="color: #01AAED; margin: 0;"><%= @stats[:min][:count] %></h2>
+            <p style="color: #999; font-size: 12px;"><%= stat_extremum_label(@stats[:min], @period) %></p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- ECharts图表 -->
+    <div class="layui-row">
+      <div id="registrationChart" style="width: 100%; height: 600px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 引入ECharts -->
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+
+<script>
+// 从Rails传递的数据
+const statsData = <%= raw @stats.to_json %>;
+
+// 初始化图表
+var chartDom = document.getElementById('registrationChart');
+var myChart = echarts.init(chartDom);
+
+// 配置项
+var option = {
+  title: {
+    text: '用户注册量趋势',
+    left: 'center',
+    textStyle: {
+      fontSize: 16,
+      fontWeight: 'normal'
+    }
+  },
+  tooltip: {
+    trigger: 'axis',
+    axisPointer: {
+      type: 'cross',
+      label: {
+        backgroundColor: '#6a7985'
+      }
+    }
+  },
+  grid: {
+    left: '3%',
+    right: '4%',
+    bottom: '3%',
+    containLabel: true
+  },
+  toolbox: {
+    feature: {
+      saveAsImage: {
+        title: '保存为图片'
+      },
+      dataView: {
+        title: '数据视图',
+        readOnly: false
+      },
+      restore: {
+        title: '还原'
+      }
+    }
+  },
+  xAxis: {
+    type: 'category',
+    boundaryGap: false,
+    data: statsData.labels,
+    axisLabel: {
+      rotate: statsData.labels.length > 15 ? 45 : 0,
+      interval: statsData.labels.length > 15 ? 'auto' : 0
+    }
+  },
+  yAxis: {
+    type: 'value',
+    name: '注册量(人)'
+  },
+  series: [
+    {
+      name: '注册量',
+      type: 'line',
+      smooth: true,
+      symbol: 'circle',
+      symbolSize: 6,
+      lineStyle: {
+        width: 2,
+        color: '#1E9FFF'
+      },
+      itemStyle: {
+        color: '#1E9FFF',
+        borderWidth: 2,
+        borderColor: '#fff'
+      },
+      areaStyle: {
+        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+          { offset: 0, color: 'rgba(30, 159, 255, 0.3)' },
+          { offset: 1, color: 'rgba(30, 159, 255, 0.05)' }
+        ])
+      },
+      data: statsData.values,
+      markPoint: {
+        data: [
+          { type: 'max', name: '最大值' },
+          { type: 'min', name: '最小值' }
+        ]
+      },
+      markLine: {
+        data: [
+          { type: 'average', name: '平均值' }
+        ]
+      }
+    }
+  ]
+};
+
+// 渲染图表
+myChart.setOption(option);
+
+// 响应式调整
+window.addEventListener('resize', function() {
+  myChart.resize();
+});
+
+// 切换时间范围
+function changeRange(range) {
+  var url = window.location.href;
+  if (url.indexOf('?') > -1) {
+    url = url.split('?')[0];
+  }
+  window.location.href = url + '?period=<%= @period %>&range=' + range;
+}
+</script>
+
+<style>
+.layui-card {
+  border-radius: 4px;
+  box-shadow: 0 1px 2px 0 rgba(0,0,0,.05);
+}
+
+.layui-card-header {
+  font-weight: normal;
+  color: #666;
+  font-size: 14px;
+}
+
+.layui-card-body h2 {
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.layui-card-body p {
+  margin-top: 5px;
+}
+</style>

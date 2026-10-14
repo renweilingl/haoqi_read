@@ -1,0 +1,22 @@
+<%= form_tag add_gift_vip_operator_app_user_path(@app_user), method: :put, class: "layui-form" do %>
+  <div class="layui-form-item layui-col-md6">
+    <label class="layui-form-label">赠送用户</label>
+    <div class="layui-input-block">
+      <input type="text" value="<%= @app_user.phone %>" class="layui-input" disabled>
+    </div>
+  </div>
+
+  <div class="layui-form-item layui-col-md6">
+    <label class="layui-form-label">赠送天数</label>
+    <div class="layui-input-block">
+      <input type="number" name="effective_days" class="layui-input" min="1" step="1" placeholder="赠送天数" required>
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <div class="layui-input-block">
+      <button class="layui-btn layui-bg-blue" lay-submit lay-filter="component-form-element">立即提交</button>
+      <%= link_to "取消", :operator_app_users, class: "layui-btn layui-btn-primary" %>
+    </div>
+  </div>
+<% end %>

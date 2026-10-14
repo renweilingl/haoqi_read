@@ -1,0 +1,637 @@
+<%= stylesheet_link_tag 'wangeditor', media: 'all' %>                                                                      
+<%= javascript_include_tag 'wangeditor', 'data-turbolinks-track': 'reload' %>
+<%= form_for(@book, url: @book.new_record? ? :admin_picture_books : :admin_picture_book,method: @book.new_record? ? :post : :put, :html => {:class => "layui-form"}) do |f| %> 
+  <fieldset class="layui-elem-field layui-field-title">
+    <legend><i class="layui-icon layui-icon-note"></i> 基本信息</legend>
+  </fieldset>
+
+
+  <div class="layui-form-item">
+    <%= f.label :lan_type, class: "layui-form-label" do %>
+      <span class="required">*</span> 类型
+    <% end %>
+    <div class="layui-input-block">
+      <% Category.where(name: ["图书", "漫画"]).each do |x| %>
+        <input type="radio" lay-filter="levelFilter" name="book[category_id]" value=<%= x.id %> title="<%= x.name %>" <%= 'checked' if @book.category_id == x.id %> <%= 'disabled' unless @book.new_record? %>>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <label class="layui-form-label">二级分类</label>
+    <div class="layui-input-block" id="category-sub-wrap">
+      <% CategorySub.by_category_id(@book.category_id).each do |cat| %>
+        <input type="checkbox" name="book[category_sub_ids][]" value=<%= cat.id %> title="<%= cat.name %>" <%= 'checked' if @book.category_sub_ids.include?(cat.id) %> />
+      <% end %>
+    </div>
+  </div>
+
+  <% if false %>
+  <div class="layui-form-item" style="display:  <%= @book.category_id == 1 ? 'block' : 'none' %>;" id="level-wrap">
+    <label class="layui-form-label">图书分级</label>
+    <div class="layui-input-block">
+      <% BookLevel.all.sorted.each do |x| %>
+        <input type="radio" name="book[book_level_id]" value=<%= x.id %> title="<%= x.name %>" <%= 'checked' if @book.book_level_id == x.id %>>
+      <% end %>
+    </div>
+  </div>
+  <% end %>
+
+  <div class="layui-form-item">
+    <label class="layui-form-label">年龄范围</label>
+    <div class="layui-input-block">
+      <div class="grade-checkbox" id="grade-checkbox">
+        <% Grade.all.each do |grade| %>
+          <input type="checkbox" name="book[grade_ids][]" value=<%= grade.id %> title="<%= grade.name %>" <%= 'checked' if @book.grade_ids.include?(grade.id) %> />
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <%= f.label :name, class: "layui-form-label" do %>
+      <span class="required">*</span> 图书名称
+    <% end %>
+    <div class="layui-input-block">
+      <%= f.text_field :name, class: "layui-input", placeholder: "请输入图书名称", maxlength: 100, required: true %>
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <label class="layui-form-label">是否免费</label>
+    <div class="layui-input-block">
+      <%= f.radio_button :is_free, true, title: "免费" %>
+      <%= f.radio_button :is_free, false, title: "付费" %>
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <label class="layui-form-label">发布状态</label>
+    <div class="layui-input-block">
+      <%= f.radio_button :is_published, true, title: "发布" %>
+      <%= f.radio_button :is_published, false, title: "下线" %>
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <%= f.label :cover_image_url, class: "layui-form-label" do %>
+      <span class="required">*</span> 图书封面
+    <% end %>
+    <div class="layui-input-block">
+      <div class="layui-upload">
+        <button type="button" class="layui-btn layui-btn-normal" id="upload-banner">
+          <i class="layui-icon layui-icon-upload"></i> 上传封面
+        </button>
+        <span class="upload-tip" style="margin-left: 10px; color: #999;">支持 JPG、PNG、WebP 格式</span>
+      </div>
+      <div id="cover-preview" style="margin-top: 10px; display: <%= @book.cover_image_url.blank? ?  'none' : 'block' %>;">
+        <img id="cover-img" src="<%= @book.cover_image_url.blank? ? '' : FileMap.new(@book.cover_image_url, 'img').secrity_src %>" style="max-width: 200px; max-height: 280px; border-radius: 4px; border: 1px solid #e6e6e6;">
+        <button type="button" class="layui-btn layui-btn-xs layui-btn-danger cover-remove" style="margin-left: 10px;">
+          <i class="layui-icon layui-icon-close"></i> 移除
+        </button>
+      </div>
+      <%= f.hidden_field :cover_image_url, id: "cover_image_url" %>
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <label class="layui-form-label">内容文件</label>
+    <div class="layui-input-block">
+      <div class="layui-upload-drag" id="file-upload" style="width: 100%; padding: 30px; text-align: center;">
+        <i class="layui-icon layui-icon-upload" style="font-size: 48px; color: #9ca3af;"></i>
+        <p style="margin-top: 15px; color: #6b7280;">点击上传，或将文件拖拽到此处</p>
+        <p class="layui-word-aux" id="file-restriction" style="margin-top: 5px;">支持格式：epub、pdf</p>
+      </div>
+      <div id="upload-progress" style="display: none; margin-top: 15px;">
+        <div class="layui-progress" lay-filter="upload-progress">
+          <div class="layui-progress-bar" lay-percent="0%"></div>
+        </div>
+        <div style="margin-top: 10px; text-align: center;">
+          <span id="upload-status">上传中...</span>
+          <span id="upload-percent">0%</span>
+        </div>
+      </div>
+    </div>
+
+    <% if @book.new_record? %>
+    <div id="upload-result" style="display: none; margin-top: 15px;" class="layui-card">
+      <div class="layui-card-body" style="padding: 15px;">
+        <div style="display: flex; align-items: center; gap: 15px;">         
+          <i class="layui-icon layui-icon-ok-circle" style="font-size: 32px; color: #10b981;"></i>
+          <div>                                                              
+            <div id="file-name" style="font-weight: bold;"></div>            
+            <div style="display: flex; gap: 10px;">                          
+              <span id="file-type-badge" class="layui-badge"></span>         
+            </div>                                                           
+          </div>                                                             
+          <div style="margin-left: auto;">                                   
+            <button type="button" class="layui-btn layui-btn-xs layui-btn-danger" id="remove-file">移除</button>
+          </div>                                                             
+        </div>  
+      </div>
+    </div>
+    <%  else %> 
+    <div id="upload-result" class="layui-card" style="display: inline-block; padding: 15px;"> 
+      <div style="display: flex; align-items: center; gap: 15px;">           
+        <div style="width: 40px; height: 40px; background-color: <%= @book.file_type_color %>20; border-radius: 4px; display: flex; align-items: center; justify-content: center;">
+          <i class="layui-icon <%= @book.file_type_icon %>" style="color: <%= @book.file_type_color %>; font-size: 20px;"></i>
+        </div>                                                               
+        <div>                                                                
+          <div id="file-name" style="font-weight: bold;"><%= @book.file_name %></div>
+          <div style="display: flex; gap: 10px;">
+            <span id="file-type-badge" class="layui-badge"><%= @book.file_type %></span>
+          </div>  
+        </div>                                                               
+        <div style="margin-left: auto;">                                     
+          <button type="button" class="layui-btn layui-btn-xs layui-btn-danger" id="remove-file">移除</button>
+        </div>                                                               
+      </div>                                                                 
+    </div> 
+    <%  end %> 
+
+    <%= f.hidden_field :file_url, id: "file-url-hidden" %>
+    <%= f.hidden_field :file_name, id: "file-name-hidden" %>
+    <%= f.hidden_field :file_type, id: "file-type-hidden" %>
+  </div>
+
+  <div class="layui-form-item">
+    <%= f.label :supplier_id, class: "layui-form-label" do %>
+      <span class="required">*</span> 出版社
+    <% end %>
+    <div class="layui-input-block">
+      <%= f.select :supplier_id,
+            options_from_collection_for_select(@suppliers, :id, :name, @book.supplier_id),
+            { include_blank: '请选择出版社' },
+            { class: "layui-input", style: "width: 250px;" } %>
+    </div>
+  </div>
+
+
+  <div class="layui-form-item">
+    <label class="layui-form-label">作者</label>
+    <div class="layui-input-block">
+      <select name="book[author_id]" lay-search="" lay-verify="required">
+        <option value="">请选择作者</option>
+        <% Author.all.each do |x| %>
+          <option value="<%= x.id %>" <%= "selected" if @book.author_id == x.id %>><%= x.name %></option>
+        <% end %>
+      </select>
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <%= f.label :content_description, "内容简介", class: "layui-form-label" %>
+    <div class="layui-input-block">
+      <div id="richtext-editor" class="description-editor" style="min-height: 200px;">
+        <div id="wang-editor-toolbar" style="border-bottom: 1px solid #e6e6e6;"></div>
+        <div name="content_description" id="wang-editor-content" style="height: 320px; overflow-y: auto;border: 1px solid #e6e6e6;"></div>
+        <%= f.hidden_field :content_description, id: "content-description-hidden" %>
+      </div>
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <div class="layui-input-block">
+      <button type="submit" class="layui-btn layui-bg-blue" lay-submit lay-filter="submit-content">
+        <i class="layui-icon layui-icon-release"></i>提交保存
+      </button>
+      <%= link_to "取消", :admin_picture_books, class: "layui-btn layui-btn-primary" %>
+    </div>
+  </div>
+<% end %>
+
+<%= render 'common/crop' %>
+
+<script>
+  var bannerOriginalImage = null;
+  var bannerCropRatio = '4:5';
+  var bannerCropState = {
+    x: 0, y: 0, width: 0, height: 0,
+    isDragging: false, dragType: null,
+    startX: 0, startY: 0,
+    startCrop: { x: 0, y: 0, width: 0, height: 0 }
+  };
+  var bannerFileName = '';
+
+  function openBannerCropModal(imageData, fileName) {
+    bannerFileName = fileName;
+    bannerOriginalImage = new Image();
+    bannerOriginalImage.onload = function() {
+      document.getElementById('bannerCropModal').classList.add('active');
+      initBannerCropCanvas();
+    };
+    bannerOriginalImage.src = imageData;
+  }
+
+  function closeBannerCropModal() {
+    document.getElementById('bannerCropModal').classList.remove('active');
+    bannerOriginalImage = null;
+  }
+
+  function initBannerCropCanvas() {
+    var wrapper = document.getElementById('cropCanvasWrapper');
+    var canvas = document.getElementById('cropCanvas');
+    var containerWidth = wrapper.parentElement.clientWidth - 40;
+    var containerHeight = wrapper.parentElement.clientHeight - 40;
+
+    var scale = Math.min(containerWidth / bannerOriginalImage.width, containerHeight / bannerOriginalImage.height);
+    var canvasWidth = bannerOriginalImage.width * scale;
+    var canvasHeight = bannerOriginalImage.height * scale;
+
+    canvas.width = canvasWidth;
+    canvas.height = canvasHeight;
+
+    var ctx = canvas.getContext('2d');
+    ctx.drawImage(bannerOriginalImage, 0, 0, canvasWidth, canvasHeight);
+
+    initBannerCropBox(canvasWidth, canvasHeight);
+  }
+
+  function initBannerCropBox(canvasWidth, canvasHeight) {
+    var cropWidth, cropHeight;
+    var ratioW = parseInt(bannerCropRatio.split(':')[0]);
+    var ratioH = parseInt(bannerCropRatio.split(':')[1]);
+    var targetRatio = ratioW / ratioH;
+
+    // 默认裁剪框宽度等于图片宽度（canvas宽度）
+    cropWidth = canvasWidth;
+    cropHeight = cropWidth / targetRatio;
+
+    //如果计算出的高度超过canvas高度，则按高度来调整
+    if (cropHeight > canvasHeight) {
+      cropHeight = canvasHeight;
+      cropWidth = cropHeight * targetRatio;
+    }
+
+    bannerCropState.x = (canvasWidth - cropWidth) / 2;
+    bannerCropState.y = (canvasHeight - cropHeight) / 2;
+    bannerCropState.width = cropWidth;
+    bannerCropState.height = cropHeight;
+
+    updateBannerCropBox();
+  }
+
+  function updateBannerCropBox() {
+    var cropBox = document.getElementById('cropBox');
+    cropBox.style.left = bannerCropState.x + 'px';
+    cropBox.style.top = bannerCropState.y + 'px';
+    cropBox.style.width = bannerCropState.width + 'px';
+    cropBox.style.height = bannerCropState.height + 'px';
+    updateCropPixelSize();
+  }
+
+  function updateCropPixelSize() {
+    if (!bannerOriginalImage) return;
+
+    var canvas = document.getElementById('cropCanvas');
+
+    var scaleX = bannerOriginalImage.naturalWidth / canvas.width;
+    var scaleY = bannerOriginalImage.naturalHeight / canvas.height;
+
+    var actualWidth = Math.round(bannerCropState.width * scaleX);
+    var actualHeight = Math.round(bannerCropState.height * scaleY);
+
+    var sizeDisplay = document.getElementById('cropPixelSize');
+    if (sizeDisplay) {
+      sizeDisplay.textContent = actualWidth + ' x ' + actualHeight;
+    }
+  }
+
+  // 裁剪比例切换
+  document.querySelectorAll('.crop-ratio-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.crop-ratio-btn').forEach(function(b) { b.classList.remove('active'); });
+      this.classList.add('active');
+      bannerCropRatio = this.dataset.ratio;
+      var canvas = document.getElementById('cropCanvas');
+      initBannerCropBox(canvas.width, canvas.height);
+    });
+  });
+
+  // 裁剪框拖拽
+  var cropBox = document.getElementById('cropBox');
+  cropBox.addEventListener('mousedown', function(e) {
+    if (e.target.classList.contains('crop-corner')) return;
+    bannerCropState.isDragging = true;
+    bannerCropState.dragType = 'move';
+    bannerCropState.startX = e.clientX;
+    bannerCropState.startY = e.clientY;
+    bannerCropState.startCrop = { x: bannerCropState.x, y: bannerCropState.y, width: bannerCropState.width, height: bannerCropState.height };
+    e.preventDefault();
+  });
+
+  document.querySelectorAll('.crop-corner').forEach(function(corner) {
+    corner.addEventListener('mousedown', function(e) {
+      bannerCropState.isDragging = true;
+      bannerCropState.dragType = corner.classList.contains('top-left') || corner.classList.contains('top-right') ||
+                                  corner.classList.contains('bottom-left') || corner.classList.contains('bottom-right') ? corner.className.split(' ')[1] : 'move';
+      bannerCropState.startX = e.clientX;
+      bannerCropState.startY = e.clientY;
+      bannerCropState.startCrop = { x: bannerCropState.x, y: bannerCropState.y, width: bannerCropState.width, height: bannerCropState.height };
+      e.preventDefault();
+      e.stopPropagation();
+    });
+  });
+
+  document.addEventListener('mousemove', function(e) {
+    if (!bannerCropState.isDragging) return;
+    var deltaX = e.clientX - bannerCropState.startX;
+    var deltaY = e.clientY - bannerCropState.startY;
+    var canvas = document.getElementById('cropCanvas');
+    var canvasW = canvas.width;
+    var canvasH = canvas.height;
+
+    var ratioW = parseInt(bannerCropRatio.split(':')[0]);
+    var ratioH = parseInt(bannerCropRatio.split(':')[1]);
+    var targetRatio = ratioW / ratioH;
+    var minSize = 100; // 最小裁剪尺寸
+
+    if (bannerCropState.dragType === 'move') {
+      bannerCropState.x = Math.max(0, Math.min(canvasW - bannerCropState.width, bannerCropState.startCrop.x + deltaX));
+      bannerCropState.y = Math.max(0, Math.min(canvasH - bannerCropState.height, bannerCropState.startCrop.y + deltaY));
+    } else if (bannerCropState.dragType === 'top-left') {
+      // 左上角：向左/上拖动增大，向右/下拖动缩小
+      var newWidth = bannerCropState.startCrop.width - deltaX;
+      var newHeight = newWidth / targetRatio;
+      if (newWidth >= minSize && newHeight >= minSize) {
+        var newX = bannerCropState.startCrop.x + deltaX;
+        var newY = bannerCropState.startCrop.y + (bannerCropState.startCrop.height - newHeight);
+        if (newX >= 0 && newY >= 0) {
+          bannerCropState.x = newX;
+          bannerCropState.y = newY;
+          bannerCropState.width = newWidth;
+          bannerCropState.height = newHeight;
+        }
+      }
+    } else if (bannerCropState.dragType === 'top-right') {
+      // 右上角：向右/上拖动增大，向左/下拖动缩小
+      var newWidth = bannerCropState.startCrop.width + deltaX;
+      var newHeight = newWidth / targetRatio;
+      if (newWidth >= minSize && newHeight >= minSize) {
+        var newY = bannerCropState.startCrop.y + (bannerCropState.startCrop.height - newHeight);
+        if (bannerCropState.startCrop.x + newWidth <= canvasW && newY >= 0) {
+          bannerCropState.y = newY;
+          bannerCropState.width = newWidth;
+          bannerCropState.height = newHeight;
+        }
+      }
+    } else if (bannerCropState.dragType === 'bottom-left') {
+      // 左下角：向左/下拖动增大，向右/上拖动缩小
+      var newWidth = bannerCropState.startCrop.width - deltaX;
+      var newHeight = newWidth / targetRatio;
+      if (newWidth >= minSize && newHeight >= minSize) {
+        var newX = bannerCropState.startCrop.x + deltaX;
+        if (newX >= 0 && bannerCropState.startCrop.y + newHeight <= canvasH) {
+          bannerCropState.x = newX;
+          bannerCropState.width = newWidth;
+          bannerCropState.height = newHeight;
+        }
+      }
+    } else if (bannerCropState.dragType === 'bottom-right') {
+      // 右下角：向右/下拖动增大，向左/上拖动缩小
+      var newWidth = bannerCropState.startCrop.width + deltaX;
+      var newHeight = newWidth / targetRatio;
+      if (newWidth >= minSize && newHeight >= minSize) {
+        if (bannerCropState.startCrop.x + newWidth <= canvasW && bannerCropState.startCrop.y + newHeight <= canvasH) {
+          bannerCropState.width = newWidth;
+          bannerCropState.height = newHeight;
+        }
+      }
+    }
+
+    updateBannerCropBox();
+  });
+
+  document.addEventListener('mouseup', function() {
+    bannerCropState.isDragging = false;
+  });
+
+  function confirmBannerCrop() {
+    var canvas = document.getElementById('cropCanvas');
+    var scale = canvas.width / bannerOriginalImage.width;
+
+    var cropX = bannerCropState.x / scale;
+    var cropY = bannerCropState.y / scale;
+    var cropW = bannerCropState.width / scale;
+    var cropH = bannerCropState.height / scale;
+
+    var resultCanvas = document.createElement('canvas');
+    resultCanvas.width = cropW;
+    resultCanvas.height = cropH;
+
+    var ctx = resultCanvas.getContext('2d');
+    ctx.drawImage(bannerOriginalImage, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+
+    // 转换为Blob并上传
+    resultCanvas.toBlob(function(blob) {
+      var formData = new FormData();
+      formData.append('file', blob, bannerFileName);
+
+      fetch('<%= upload_img_files_path %>', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''
+        }
+      })
+      .then(function(response) { return response.json(); })
+      .then(function(res) {
+        if (res.success) {
+          $('#cover_image_url').val(res.url);
+          $('#cover-img').attr('src', res.preivew_url);
+          $('#cover-preview').show();
+          layui.layer.msg('Banner裁剪上传成功');
+        } else {
+          layui.layer.msg(res.message || '上传失败', {icon: 2});
+        }
+        closeBannerCropModal();
+      })
+      .catch(function(err) {
+        console.log("error");
+        layui.layer.msg('上传失败', {icon: 2});
+        closeBannerCropModal();
+      });
+    }, 'image/jpeg', 0.9);
+  }
+  layui.use(['form', 'upload', 'layer'], function(){
+    var form = layui.form,
+        laydate = layui.laydate,
+        upload = layui.upload,
+        layer = layui.layer,
+        $ = layui.$;
+
+    form.render();
+
+    document.getElementById('upload-banner').addEventListener('click', function() {
+      var input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.onchange = function(e) {
+        var file = e.target.files[0];
+        if (!file) return;
+
+        // 验证文件类型
+        var allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+        if (!allowedTypes.includes(file.type)) {
+          layer.msg('仅支持 JPG、PNG、WebP 格式', {icon: 2});
+          return;
+        }
+
+        // 验证文件大小 (5MB)
+        if (file.size > 10 * 1024 * 1024) {
+          layer.msg('文件大小不能超过 10MB', {icon: 2});
+          return;
+        }
+
+        var reader = new FileReader();
+        reader.onload = function(event) {
+          openBannerCropModal(event.target.result, file.name);
+        };
+        reader.readAsDataURL(file);
+      };
+      input.click();
+    });
+
+    form.on('radio(levelFilter)', function(data) {
+        var cat_id = data.value;
+        //console.log('被选中的值:', cat_id);
+        $.ajax({
+            url: "/admin/categories/" + cat_id + "/subs",
+            type: 'get',
+            dataType: 'json',
+            data: {},
+            success: function (json) {
+                $("#category-sub-wrap").html(json.sub_opts);
+                if(1 === parseInt(cat_id)){
+                    $("#level-wrap").show();
+                } else {
+                    $("#level-wrap").hide();
+                }
+                form.render();
+            },
+            error: function (e) {
+            }
+        });
+    });
+
+    $('.cover-remove').on('click', function(){
+      $('#cover_image_url').val('');
+      $('#cover-preview').hide();
+    });
+
+    var uploadInst = upload.render({
+        elem: '#file-upload',
+        url: '<%= upload_files_path %>',
+        auto: true,
+        accept: 'file',
+        exts: 'pdf|epub',
+        size: 409600,
+        before: function(obj){
+            $('#upload-progress').show();
+            $('#upload-result').hide();
+            element.progress('upload-progress', '0%');
+            $('#upload-percent').text('0%');
+            $('#upload-status').text('上传中...');
+        },
+        progress: function(n, elem){
+            element.progress('upload-progress', n + '%');
+            $('#upload-percent').text(n + '%');
+        },
+        done: function(res){                                                       
+          if (res.code === 0) {                                                    
+              $('#upload-progress').hide();                                          
+              $('#upload-result').show();                                            
+              $('#file-name').text(res.data.file_name);                              
+              $('#file-url-hidden').val(res.data.file_url);                      
+              $('#file-name-hidden').val(res.data.file_name);                    
+              $('#file-type-hidden').val(res.data.file_type);                    
+              var fileTypeColors = {                                                 
+                'epub': '#10b981',                                                   
+                'pdf': '#ef4444',                                                    
+                'mp3': '#8b5cf6',                                                    
+                'mp4': '#3b82f6'                                                     
+              };                                                                     
+              var fileType = res.data.file_type || '';                               
+              $('#file-type-badge').text(res.data.file_type_name || fileType.toUpperCase());
+              if (fileTypeColors[fileType]) {                                        
+                $('#file-type-badge').css('background-color', fileTypeColors[fileType]);
+              }                                                                      
+                                                                                 
+              layer.msg('上传成功', {icon: 6});                                      
+          } else {                                                                 
+              layer.msg(res.msg || '上传失败', {icon: 5});                           
+              $('#upload-progress').hide();                                          
+          }                                                                        
+        },
+        error: function(){
+            layer.msg('上传失败，请重试', {icon: 5});
+            $('#upload-progress').hide();
+        }
+      });
+
+      $('#remove-file').on('click', function(){
+          $('#upload-result').hide();
+          $('#file-url-hidden').val('');
+          $('#file-name-hidden').val('');
+          layer.msg('已移除文件', {icon: 6});
+      });
+
+      var wangEditor = window.wangEditor;
+      var E = wangEditor;
+      var editor = E.createEditor({
+        selector: '#wang-editor-content',
+        html: '<%= @book.content_description.blank? ? "" : @book.content_description.html_safe %>',
+        onChange: (editor) => {
+          const html = editor.getHtml()
+          this.textareaTarget.value = html
+        },
+        config: {
+          placeholder: '请输入内容简介...',
+          MENU_CONF: {
+            uploadImage: {
+              server: '<%= upload_open_img_files_path %>',
+              fieldName: 'file',
+              maxFileSize: 5 * 1024 * 1024,
+              headers: {
+                'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+              },
+              customInsert(res, insertFn) {
+                if (res.errno === 0 || res.success) {
+                  var url = res.url || (res.data && res.data[0] && res.data[0].url);
+                  if (url) {
+                    insertFn(url, res.name || '', url);
+                  }
+                } else {
+                  layer.msg(res.message || '上传失败', { icon: 2 });
+                }
+              }
+            }
+          }
+        }
+    });                                                                          
+    //editor.setHtml('<%= j @book.content_description.to_s %>');  
+
+    var toolbar = E.createToolbar({                                              
+      editor: editor,                                                            
+      selector: '#wang-editor-toolbar',                                          
+      config: {                                                                  
+        excludeKeys: [                                                           
+          'group-video',                                                         
+          'todo',                                                                
+          'emotion',                                                             
+          'codeBlock',                                                           
+          'insertTable',                                                         
+          'undo',                                                                
+          'redo'                                                                 
+        ]                                                                        
+      }                                                                          
+    }); 
+
+    form.on('submit(submit-content)', function(data){
+      $('#content-description-hidden').val(editor.getHtml());
+
+      return true;
+    });
+
+  })
+</script>

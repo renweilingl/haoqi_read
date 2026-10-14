@@ -1,0 +1,88 @@
+<div class="layui-tab">
+  <div class="x-nav">
+    <span class="layui-breadcrumb">
+      <a><cite>渠道管理</cite></a>
+    </span>
+    <%= render 'common/user_info' %>
+  </div>
+  <div class="x-body">
+    <div class="layui-row">
+      <div class="layui-col-xs9">
+        <%= search_form_for(@q, url: :admin_channels, :html => {class: :'layui-form layui-col-md12'}) do |f| %>
+          <div class="layui-input-inline">
+            <%= f.text_field :name_cont, class: :'layui-input', placeholder: "渠道名称" %>
+          </div>
+          <button class="layui-btn layui-bg-blue" lay-submit><i class="layui-icon">&#xe615;</i>查询</button>
+          <%= link_to "重置", :admin_channels, class: "layui-btn layui-btn-primary" %>
+        <% end %>
+      </div>
+
+      <div class="layui-col-3 text-right">
+        <%= link_to :new_admin_channel, class: 'layui-btn layui-bg-blue' do %>
+          <i class="layui-icon"></i>新增渠道
+        <% end %>
+      </div>
+    </div>
+
+    <table class="layui-table">
+      <thead>
+        <tr>
+          <th width="60">ID</th>
+          <th>渠道名称</th>
+          <th width="150">版本号</th>
+          <th width="150">更新时间</th>
+          <th width="200" style="text-align:center;">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @channels.each do |c| %>
+          <tr>
+            <td><%= c.id %></td>
+            <td>
+              <div style="font-weight: 500;"><%= c.name %></div>
+            </td>
+            <td><%= c.version %></td>
+            <td><%= c.updated_at.localtime.strftime("%Y-%m-%d") %></td>
+            <td style="text-align:center;">
+              <div class="layui-btn-group">
+                <%= link_to "编辑", edit_admin_channel_path(c), class: "layui-btn layui-btn-sm" %>
+                <%= link_to '删除', admin_channel_path(c), method: :delete, class: "layui-btn layui-btn-sm", title: "删除", data: { confirm: "确定要删除此渠道信息吗？此操作不可恢复。" } %>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+    <!-- 分页 -->
+    <% if @channels.total_pages > 1 %>
+      <div id="pagination" style="margin-top: 20px;"></div>
+    <% end %>
+  </div>
+</div>
+
+<script>
+  layui.use(['laypage', 'form'], function(){
+    var laypage = layui.laypage,
+        form = layui.form;
+
+    // 分页
+    <% if @channels.total_pages > 1 %>
+    laypage.render({
+      elem: 'pagination',
+      count: <%= @channels.total_entries %>,
+      limit: <%= @channels.per_page %>,
+      curr: <%= @channels.current_page %>,
+      layout: ['count', 'prev', 'page', 'next', 'limit', 'skip'],
+      jump: function(obj, first){
+        if(!first){
+          var url = new URL(window.location.href);
+          url.searchParams.set('page', obj.curr);
+          url.searchParams.set('per_page', obj.limit);
+          window.location.href = url.toString();
+        }
+      }
+    });
+    <% end %>
+  });
+</script>

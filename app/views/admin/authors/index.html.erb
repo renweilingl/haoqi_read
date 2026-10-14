@@ -1,0 +1,94 @@
+<div class="layui-tab">
+  <div class="x-nav">
+    <span class="layui-breadcrumb">
+      <a href="">权限设置</a>
+      <a><cite>作者管理</cite></a>
+    </span>
+    <%= render 'common/user_info' %>
+  </div>
+  <div class="x-body">
+    <div class="layui-row">
+      <div class="layui-col-xs8">
+        <%= search_form_for(@q, url: :admin_authors, :html => {class: :'layui-form layui-col-md12'}) do |f| %>
+          <div class="layui-input-inline">
+            <%= f.text_field :name_cont, class: :'layui-input', placeholder: "作者名" %>
+          </div>
+          <button class="layui-btn layui-bg-blue" lay-submit><i class="layui-icon">&#xe615;</i>查询</button>
+          <%= link_to "重置", :admin_authors, class: "layui-btn layui-btn-primary" %>
+        <% end %>
+      </div>
+
+      <div class="layui-col-xs4 text-right">
+        <%= link_to :batch_new_admin_authors, class: 'layui-btn layui-bg-blue' do %>
+          <i class="layui-icon layui-icon-upload"></i>批量上传
+        <% end %>
+        <%= link_to :new_admin_author, class: 'layui-btn layui-bg-blue' do %>
+          <i class="layui-icon"></i>新增作者
+        <% end %>
+      </div>
+    </div>
+
+    <table class="layui-table">
+      <thead>
+        <tr>
+          <th width="60">ID</th>
+          <th>作者名</th>
+          <th>头像</th>
+          <th width="150">创建时间</th>
+          <th width="200" style="text-align:center;">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @authors.each do |r| %>
+          <tr>
+            <td><%= r.id %></td>
+            <td>
+              <div style="font-weight: 500;"><%= r.name %></div>
+            </td>
+            <td>
+             <% unless r.head_img.blank? %>
+                <img src="<%= FileMap.new(r.head_img, "img").secrity_src %>" style="width: 48px; height: 64px; object-fit: cover; border-radius: 4px;" />
+              <% end %>
+            </td>
+            <td><%= r.created_at.strftime("%Y-%m-%d") %></td>
+            <td style="text-align:center;">
+              <div class="layui-btn-group">
+                <%= link_to "编辑", edit_admin_author_path(r), class: "layui-btn layui-btn-sm" %>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+    <% if @authors.total_pages > 1 %>
+      <div id="pagination" style="margin-top: 20px;"></div>
+    <% end %>
+  </div>
+</div>
+
+<script>
+  layui.use(['laypage', 'form'], function(){
+    var laypage = layui.laypage,
+        form = layui.form;
+
+    // 分页
+    <% if @authors.total_pages > 1 %>
+    laypage.render({
+      elem: 'pagination',
+      count: <%= @authors.total_entries %>,
+      limit: <%= @authors.per_page %>,
+      curr: <%= @authors.current_page %>,
+      layout: ['count', 'prev', 'page', 'next', 'limit', 'skip'],
+      jump: function(obj, first){
+        if(!first){
+          var url = new URL(window.location.href);
+          url.searchParams.set('page', obj.curr);
+          url.searchParams.set('per_page', obj.limit);
+          window.location.href = url.toString();
+        }
+      }
+    });
+    <% end %>
+  });
+</script>

@@ -1,0 +1,152 @@
+<div class="layui-tab">
+  <div class="x-nav">
+    <span class="layui-breadcrumb">
+      <a href="">内容管理</a>
+      <a href="/admin/compilations">合辑管理</a>
+      <a><cite>合辑详情</cite></a>
+    </span>
+    <%= render 'common/user_info' %>                                             
+  </div>
+
+  <div class="x-body">
+    <div class="layui-row layui-col-space15">
+      <div class="layui-col-md8">
+        <div class="layui-card">
+          <div class="layui-card-header">
+            <i class="layui-icon layui-icon-note"></i> 合辑信息
+            <%= link_to :admin_compilations, class: "layui-btn layui-btn-primary" do %>
+              <i class="layui-icon layui-icon-return"></i>返回列表
+            <% end %>
+          </div>
+          <div class="layui-card-body">
+            <table class="layui-table" style="margin: 0;">
+              <colgroup>
+                <col width="120">
+                <col>
+              </colgroup>
+              <tbody>
+                <tr>
+                  <td style="background: #f5f7fa; font-weight: 500;">合辑名称</td>
+                  <td><%= @compilation.name %></td>
+                </tr>
+                <tr>
+                  <td style="background: #f5f7fa; font-weight: 500;">编辑推荐语</td>
+                  <td>
+                    <% if @compilation.editor_recommendation.present? %>
+                      <span style="color: #52c41a; font-weight: bold;">「<%= @compilation.editor_recommendation %>」</span>
+                    <% else %>
+                      -
+                    <% end %>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="background: #f5f7fa; font-weight: 500;">作者</td>
+                  <td><%= @compilation.author.presence || '-' %></td>
+                </tr>
+                <tr>
+                  <td style="background: #f5f7fa; font-weight: 500;">出版社</td>
+                  <td><%= @compilation.publisher.presence || '-' %></td>
+                </tr>
+                <tr>
+                  <td style="background: #f5f7fa; font-weight: 500;">合辑总集数</td>
+                  <td><%= @compilation.total_count %> 个</td>
+                </tr>
+                <tr>
+                  <td style="background: #f5f7fa; font-weight: 500;">标签</td>
+                  <td>
+                    <% if @compilation.tags_array.blank? %>
+                      -
+                    <% else %>
+                      <% @compilation.tags_array.each do |tag| %>
+                        <span class="layui-badge layui-bg-gray" style="margin-right: 5px;"><%= tag %></span>
+                      <% end %>
+                    <% end %>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="background: #f5f7fa; font-weight: 500;">创建时间</td>
+                  <td><%= @compilation.created_at.strftime('%Y-%m-%d %H:%M:%S') %></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="layui-card">
+          <div class="layui-card-header">
+            <i class="layui-icon layui-icon-survey"></i> 年龄与分类
+          </div>
+          <div class="layui-card-body">
+            <table class="layui-table" style="margin: 0;">
+              <colgroup>
+                <col width="120">
+                <col>
+              </colgroup>
+              <tbody>
+                <tr>
+                  <td style="background: #f5f7fa; font-weight: 500;">年龄范围</td>
+                  <td><%= @compilation.grades.pluck(:name) %></td>
+                </tr>
+                <tr>
+                  <td style="background: #f5f7fa; font-weight: 500;">分类</td>
+                  <td><%= @compilation.categories.pluck(:name) %></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="layui-card">
+          <div class="layui-card-header">
+            <i class="layui-icon layui-icon-survey"></i> 简介
+          </div>
+          <div class="layui-card-body">
+            <% if @compilation.content_description.present? %>
+              <div style="line-height: 1.8;"><%= @compilation.content_description.html_safe %></div>
+            <% else %>
+              <div style="text-align: center; padding: 20px 0; color: #999;">
+                <i class="layui-icon layui-icon-file" style="font-size: 32px;"></i>
+                <div style="margin-top: 10px;">暂无合辑简介</div>
+              </div>
+            <% end %>
+ 
+            <% if @compilation.description.present? %>
+              <hr style="margin: 20px 0;" />
+              <h4 style="margin-bottom: 10px;">内容简介</h4>
+              <div style="color: #666; line-height: 1.8;"><%= @compilation.description %></div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+
+      <div class="layui-col-md4">
+        <div class="layui-card">
+          <div class="layui-card-header">
+            <i class="layui-icon layui-icon-picture"></i> 合辑Banner
+          </div>
+          <div class="layui-card-body" style="text-align: center;">
+            <% if @compilation.banner_image_url.present? %>
+              <img src="<%= FileMap.new(@compilation.banner_image_url, 'img').secrity_src %>" style="max-width: 100%; border-radius: 4px; box-shadow: 0 2px 12px rgba(0,0,0,0.1);" />
+            <% else %>
+              <div style="padding: 60px 0; background: #f5f7fa; border-radius: 4px;">
+                <i class="layui-icon layui-icon-picture" style="font-size: 48px; color: #ccc;"></i>
+                <div style="margin-top: 10px; color: #999;">暂无Banner</div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+
+        <% if @compilation.intro_image_url.present? %>
+          <div class="layui-card">
+            <div class="layui-card-header">
+              <i class="layui-icon layui-icon-picture-fine"></i> 图片简介
+            </div>
+            <div class="layui-card-body">
+              <img src="<%= FileMap.new(@compilation.intro_image_url, 'img').secrity_src %>" style="width: 100%; border-radius: 4px;" />
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

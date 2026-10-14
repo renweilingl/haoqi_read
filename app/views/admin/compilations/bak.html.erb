@@ -1,0 +1,53 @@
+<div class="layui-tab">
+  <div class="x-nav">
+    <span class="layui-breadcrumb">
+      <a href="">内容管理</a>
+      <%= link_to "合辑管理", :admin_compilations %>
+      <a><cite>合辑内容</cite></a>
+    </span>
+    <%= render 'common/user_info' %>
+  </div>
+  <div class="x-body">
+    <div class="layui-btn-container">
+      <%= link_to admin_compilations_path, class: "layui-btn layui-btn-primary" do %>
+        <i class="layui-icon layui-icon-return"></i>返回列表
+      <% end %>
+    </div>
+    <div id="ID-transfer-demo-showSearch"></div>
+  </div>
+</div>
+
+<script>
+layui.use(['transfer','layer'], function(){
+  var transfer = layui.transfer,
+      layer = layui.layer,
+      util = layui.util;
+  var data = [];
+  <% @books.each do |x| %>
+      data.push({"value": "<%= x.id %>", "title": '<%= "#{x.name} (#{x.category.name}) (#{x.grades.pluck('name').join(' | ')})" %>'});
+  <% end %>
+
+  transfer.render({
+    elem: '#ID-transfer-demo-showSearch',
+    data: data,
+    title: ['图书列表', '已添加'],
+    showSearch: true,
+    height: 610,
+    width: 450,
+    value: <%= @compilation.book_ids %>,
+    id: 'demo-inst',
+    onchange: function(obj, index){
+      var getData = transfer.getData('demo-inst');
+      $.ajax({
+        url: "/admin/compilations/<%= @compilation.id %>/update_books",
+          dataType: 'json',
+          type: 'post',
+          data: {bood_ids: getData},
+          success: function(res) {
+            layer.msg('更新成功');
+          }
+      })
+    }
+  });
+});
+</script>

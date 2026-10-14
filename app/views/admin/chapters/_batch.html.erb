@@ -1,0 +1,125 @@
+<%= form_for(@chapter, url: batch_add_admin_media_book_chapters_path(@book), method: :post, :html => {:class => "layui-form", :id => "myForm"}) do |f| %>
+  <div class="layui-form-item">
+    <label class="layui-form-label">发布日期</label>
+    <div class="layui-input-inline">
+      <%= f.text_field :publish_date, class: "layui-input", id: "ID-laydate-demo", placeholder: "yyyy-MM-dd", required: true %>
+    </div>
+  </div>
+
+  <div class="layui-form-item">                                                  
+    <label class="layui-form-label">内容文件</label>                             
+    <button type="button" class="layui-btn layui-btn-normal" id="ID-upload-demo-files">选择多文件</button>
+    <div class="layui-upload-list" style="padding: 9px 15px;margin-left: 24px;">
+      <table class="layui-table">
+        <colgroup>
+          <col style="min-width: 100px;">
+          <col width="150">
+          <col width="260">
+          <col width="150">
+        </colgroup>
+        <thead>
+          <th>文件名</th>
+          <th>大小</th>
+          <th>上传进度</th>
+          <th>操作</th>
+        </thead>
+        <tbody id="ID-upload-demo-files-list"></tbody>
+      </table>
+    </div>
+    <button type="button" class="layui-btn layui-bg-blue" id="ID-upload-demo-files-action" style="margin-left: 24px;">开始上传</button>
+  </div>
+<% end %>
+
+<script>
+  layui.use(['form', 'upload', 'layer'], function(){
+    var form = layui.form,
+        laydate = layui.laydate,
+        upload = layui.upload,
+        layer = layui.layer,
+
+        $ = layui.$;
+
+        laydate.render({
+            elem: '#ID-laydate-demo'
+        });
+
+        form.render();
+
+        var uploadListIns = upload.render({
+          elem: '#ID-upload-demo-files',
+          elemList: $('#ID-upload-demo-files-list'), // 列表元素对象
+          url: '<%= upload_media_files_path %>',
+          accept: 'file',
+          multiple: true,
+          exts: 'mp3|mp4|wav|mov',
+          //number: 3,
+          auto: false,
+          bindAction: '#ID-upload-demo-files-action',
+          before: function(obj){
+            var value = $('#ID-laydate-demo').val();
+            if (value === '' || value === null || value === undefined) {
+               layer.msg('请先选择发布日期');
+               return false;
+            }
+            $('#ID-upload-demo-files-action').addClass("layui-btn-disabled");
+          },
+          choose: function(obj){   
+            var that = this;
+            var files = this.files = obj.pushFile(); // 将每次选择的文件追加到文件队列
+            obj.preview(function(index, file, result){
+              var tr = $(['<tr id="upload-'+ index +'">',
+                '<td>'+ file.name +'</td>',
+                '<td>'+ (file.size/1024).toFixed(1) +'kb</td>',
+                '<td><div class="layui-progress" lay-filter="progress-demo-'+ index +'"><div class="layui-progress-bar" lay-percent=""></div></div></td>',
+                '<td>',
+                '<button class="layui-btn layui-btn-xs demo-reload layui-hide">重传</button>',
+                '<button class="layui-btn layui-btn-xs layui-btn-danger demo-delete">删除</button>',
+                '</td>',
+              '</tr>'].join(''));
+        
+              tr.find('.demo-reload').on('click', function(){
+                obj.upload(index, file);
+              });
+        
+              tr.find('.demo-delete').on('click', function(){
+                delete files[index]; // 删除对应的文件
+                tr.remove(); // 删除表格行
+                uploadListIns.config.elem.next()[0].value = ''; 
+              });
+        
+              that.elemList.append(tr);
+              element.render('progress'); // 渲染新加的进度条组件
+            });
+          },
+          done: function(res, index, upload){ // 成功的回调
+            var that = this;
+             if(res.code == 0){
+               var tr = that.elemList.find('tr#upload-'+ index)
+               var tds = tr.children();
+               tds.eq(3).html('');
+               delete this.files[index];
+
+               $('#myForm').append('<input type="hidden" name="duration[]" value="' + res.data.duration + '">');
+               $('#myForm').append('<input type="hidden" name="content_file_url[]" value="' + res.data.file_url + '">');
+               $('#myForm').append('<input type="hidden" name="content_file_name[]" value="' + res.data.file_name + '">');
+               $('#myForm').append('<input type="hidden" name="content_file_type[]" value="' + res.data.file_type + '">');
+
+               return;
+            }
+            this.error(index, upload);
+          },
+          allDone: function(obj){
+            $('#myForm').submit();
+          },
+          error: function(index, upload){ // 错误回调
+            var that = this;
+            var tr = that.elemList.find('tr#upload-'+ index);
+            var tds = tr.children();
+            tds.eq(3).find('.demo-reload').removeClass('layui-hide');
+          },
+          progress: function(n, elem, e, index){ // 注意：index 参数为 layui 2.6.6 新增
+            element.progress('progress-demo-'+ index, n + '%'); // 执行进度条。n 即为返回的进度百分比
+          }
+        });
+    })
+</script>

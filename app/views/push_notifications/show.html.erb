@@ -1,0 +1,148 @@
+<div class="layui-tab">                                                          
+  <div class="x-nav">                                                            
+    <span class="layui-breadcrumb">                                              
+      <a href="">运营工具</a>                                                    
+      <a href="/push_notifications"><cite>推送管理</cite></a>                                                              
+      <a><cite>推送详情 #<%= @push_notification.id %></cite></a>
+    </span>                                                                      
+    <%= render 'common/user_info' %>                                             
+  </div>                                                                         
+                                                                                 
+  <div class="x-body">                                                           
+    <div class="layui-card-body" style="padding: 20px;">
+      <div class="layui-row layui-col-space20">
+        <div class="layui-col-md8">
+          <div class="layui-card" style="border: 1px solid #e5e7eb;">
+            <div class="layui-card-header" style="background: #f9fafb; font-weight: 600;">
+              <i class="layui-icon layui-icon-about" style="margin-right: 6px;"></i>基本信息
+            </div>
+            <div class="layui-card-body">
+              <table class="layui-table" lay-skin="line" style="margin: 0;">
+                <colgroup>
+                  <col style="width: 120px;">
+                  <col>
+                </colgroup>
+                <tbody>
+                  <tr>
+                    <td style="background: #f9fafb; font-weight: 500;">推送类型</td>
+                    <td>
+                      <% if @push_notification.push_type_system_notification? %>
+                        <span class="layui-badge layui-bg-blue">系统通知</span>
+                      <% else %>
+                        <span class="layui-badge layui-bg-orange">活动通知</span>
+                      <% end %>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="background: #f9fafb; font-weight: 500;">标题</td>
+                    <td><%= @push_notification.title %></td>
+                  </tr>
+                  <tr>
+                    <td style="background: #f9fafb; font-weight: 500;">正文</td>
+                    <td><%= @push_notification.body %></td>
+                  </tr>
+                  <tr>
+                    <td style="background: #f9fafb; font-weight: 500;">跳转链接</td>
+                    <td>
+                      <% if @push_notification.link_url.present? %>
+                        <a href="<%= @push_notification.link_url %>" target="_blank" class="link-primary">
+                          <%= @push_notification.link_url %>
+                        </a>
+                      <% else %>
+                        <span style="color: #9ca3af;">无</span>
+                      <% end %>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="background: #f9fafb; font-weight: 500;">推送范围</td>
+                    <td><%= @push_notification.scope_display %></td>
+                  </tr>
+                  <tr>
+                    <td style="background: #f9fafb; font-weight: 500;">当前状态</td>
+                    <td>
+                      <% case @push_notification.status %>
+                      <% when 'scheduled' %>
+                        <span class="layui-badge layui-bg-cyan">待发送</span>
+                      <% when 'sent' %>
+                        <span class="layui-badge layui-bg-green">已发送</span>
+                      <% end %>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="background: #f9fafb; font-weight: 500;">创建时间</td>
+                    <td><%= @push_notification.created_at.strftime('%Y-%m-%d %H:%M:%S') %></td>
+                  </tr>
+                  <% if @push_notification.scheduled_at.present? %>
+                  <tr>
+                    <td style="background: #f9fafb; font-weight: 500;">定时推送时间</td>
+                    <td><%= @push_notification.scheduled_at.strftime('%Y-%m-%d %H:%M:%S') %></td>
+                  </tr>
+                  <% end %>
+                  <% if @push_notification.sent_at.present? %>
+                  <tr>
+                    <td style="background: #f9fafb; font-weight: 500;">实际发送时间</td>
+                    <td><%= @push_notification.sent_at.strftime('%Y-%m-%d %H:%M:%S') %></td>
+                  </tr>
+                  <% end %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 统计数据 -->
+        <div class="layui-col-md4">
+          <div class="layui-card" style="border: 1px solid #e5e7eb;">
+            <div class="layui-card-header" style="background: #f9fafb; font-weight: 600;">
+              <i class="layui-icon layui-icon-flag" style="margin-right: 6px;"></i>推送统计
+            </div>
+            <div class="layui-card-body">
+              <div class="layui-row layui-col-space15">
+                <div class="layui-col-sm6">
+                  <div style="background: linear-gradient(135deg, #3b82f6, #2563eb); border-radius: 6px; padding: 16px; color: white; text-align: center;">
+                    <div style="font-size: 28px; font-weight: bold;"><%= @push_notification.send_count %></div>
+                    <div style="font-size: 12px; opacity: 0.9; margin-top: 4px;">发送数</div>
+                  </div>
+                </div>
+                <div class="layui-col-sm6">
+                  <div style="background: linear-gradient(135deg, #f59e0b, #d97706); border-radius: 6px; padding: 16px; color: white; text-align: center;">
+                    <div style="font-size: 28px; font-weight: bold;"><%= @push_notification.click_count %></div>
+                    <div style="font-size: 12px; opacity: 0.9; margin-top: 4px;">点击数</div>
+                  </div>
+                </div>
+                <div class="layui-col-sm6">
+                  <div style="background: linear-gradient(135deg, #10b981, #059669); border-radius: 6px; padding: 16px; color: white; text-align: center;">
+                    <div style="font-size: 28px; font-weight: bold;">
+                      <%= number_to_percentage(@push_notification.delivery_rate || 0, precision: 1) %>
+                    </div>
+                    <div style="font-size: 12px; opacity: 0.9; margin-top: 4px;">送达率</div>
+                  </div>
+                </div>
+                <div class="layui-col-sm6">
+                  <div style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); border-radius: 6px; padding: 16px; color: white; text-align: center;">
+                    <div style="font-size: 28px; font-weight: bold;">
+                      <%= @push_notification.delivery_rate_percentage %>%
+                    </div>
+                    <div style="font-size: 12px; opacity: 0.9; margin-top: 4px;">点击率</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 操作按钮 -->
+          <div style="margin-top: 15px;">
+            <%= link_to push_notifications_path, class: 'layui-btn layui-btn-lg layui-btn-primary', style: 'width: 100%; margin-top: 10px;' do %>
+              <i class="layui-icon layui-icon-return"></i> 返回列表
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .link-primary { color: #1a73e8; }
+  .link-primary:hover { color: #1557b0; text-decoration: underline; }
+</style>

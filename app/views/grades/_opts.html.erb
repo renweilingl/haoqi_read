@@ -1,0 +1,9 @@
+<label class="layui-form-label"><%= @title %></label>
+<div class="layui-input-block">
+  <select name="rank_content[<%= @name %>]" lay-search="" lay-verify="required">
+    <option value="">选择链接内容</option>
+    <% @opts.each do |x| %>
+      <option value="<%= x.id %>"><%= x.name %></option>
+    <% end %>
+  </select>
+</div>

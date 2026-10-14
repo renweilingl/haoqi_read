@@ -1,0 +1,23 @@
+# Kamal secrets
+.kamal
+
+config/yetting.yml
+config/credentials.yml.enc
+shared
+tmp
+log
+log/*.log
+test
+.env
+.idea
+.DS_Store
+start.sh
+config/*.pem
+dump.rdb
+*.pdf
+*.txt
+*.md
+/config/master.key
+public/assets
+run_sidekiq.sh
+start_sidekiq.sh

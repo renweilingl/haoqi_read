@@ -1,0 +1,20 @@
+<div class="layui-tab">
+  <div class="x-nav">
+    <span class="layui-breadcrumb">
+      <a href="">运营管理</a>
+      <a><cite>新增套餐</cite></a>
+    </span>
+    <%= render 'common/user_info' %>
+  </div>
+
+  <div class="x-body">
+    <%= render 'form' %>
+  </div>
+</div>
+
+<script>
+  layui.use(['form'], function(){
+    var form = layui.form;
+    form.render();
+  });
+</script>

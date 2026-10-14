@@ -1,0 +1,14 @@
+---
+:verbose: false
+:concurrency: 4
+:tag: zheli
+:queues:
+  - zheli_high
+  - zheli_middle
+  - zheli_low
+test:
+  :concurrency: 1
+development:
+  :concurrency: 4
+production:
+  :concurrency: 4

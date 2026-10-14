@@ -1,0 +1,92 @@
+# Kamal 部署配置
+# 用于将 ZheliRead 部署到阿里云服务器
+
+service: zheli_read
+image: voicebook/zheli_read
+
+# ==================== 服务器配置 ====================
+servers:
+  web:
+    hosts:
+      - 8.136.142.85
+  worker:
+    hosts:
+      - 8.136.142.85
+    cmd: "bundle exec sidekiq -C config/sidekiq.yml"
+
+# ==================== 部署超时 ====================
+# 数据库迁移时间较长，增加超时
+deploy_timeout: 90
+drain_timeout: 30
+
+# ==================== Docker Registry 配置 ====================
+registry:
+  server: reg.ylb.im
+  username:
+    - KAMAL_REGISTRY_USERNAME
+  password:
+    - KAMAL_REGISTRY_PASSWORD
+
+# ==================== 环境变量 ====================
+env:
+  clear:
+    RAILS_ENV: production
+    WEB_CONCURRENCY: 5
+    RAILS_MAX_THREADS: 5
+    TZ: Asia/Shanghai
+  secret:
+    # 生产环境数据库
+    - DATABASE_PRD_USERNAME
+    - DATABASE_PRD_PASSWORD
+    - DATABASE_PRD_HOST
+    - DATABASE_PRD_PORT
+    - DATABASE_PRD_DATABASE
+    - SECRET_KEY_BASE
+    - ALIYUN_ACCESS_KEY_ID
+    - ALIYUN_ACCESS_KEY_SECRET
+    - ALIYUN_OSS_BUCKET
+    - ALIYUN_OSS_BUCKET_OPEN
+    - ALIYUN_OSS_INTERNAL
+    - ALIYUN_OSS_ENDPOINT
+    - REDIS_URL
+    - REDIS_PASSWORD
+    - ALIYUN_MNS_ENDPOINT
+    - ALIYUN_MNS_QUEUE_NAME
+    - MNS_CONSUMER_ENABLED
+
+# ==================== SSH 配置 ====================
+ssh:
+  user: root
+  port: 22
+  keys:
+    - /Users/luolin/.ssh/id_rsa
+
+# ==================== kamal-proxy 代理 ====================
+proxy:
+  ssl: true
+  host: web.zheliyuedu.cn
+  healthcheck:
+    path: /up
+    interval: 5
+    timeout: 5
+
+# ==================== 构建配置 ====================
+# 本地构建（Mac ARM → Linux AMD64），避免在生产服务器 build 导致 OOM
+# 生产服务器仅 1.5GB 内存，bundle install 需要 ~750MB，会触发 OOM Killer
+builder:
+  local: true
+  arch: amd64
+  cache:
+    type: registry
+
+# ==================== 数据卷挂载 ====================
+volumes:
+  - /zheli_read/log:/rails/log
+  - /zheli_read/tmp:/rails/tmp
+
+# ==================== 容器保留策略 ====================
+# 1.6GB 小内存服务器，减少旧版本保留数量，防止资源累积
+retain_containers: 2
+
+# ==================== Hooks 输出 ====================
+hooks_output: verbose

@@ -1,0 +1,48 @@
+<%= form_for(@user, url: @user.new_record? ? :admin_accounts : :admin_account,method: @user.new_record? ? :post : :put,
+  :html => {:class => "layui-form"}) do |f| %>
+  <div class="layui-form-item">
+    <%= f.label :name, "用户名", class: "layui-form-label" %>
+    <div class="layui-input-block">
+      <%= f.text_field :name, class: "layui-input", required: true %>
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <%= f.label :email, "登录邮箱", class: "layui-form-label" %>
+    <div class="layui-input-block">
+      <%= f.email_field :email, class: "layui-input", placeholder: "请输入邮箱", lay_verify: "required|email" %>
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <%= f.label :role, "角色", class: "layui-form-label" %>
+    <div class="layui-input-block">
+      <%= f.select :role,
+          options_for_select([
+            ['超级管理员', 'super_admin'],
+            ['编辑人员', 'editor'],
+            ['操作人员', 'operator'],
+            ['财务人员', 'finance']
+          ], @user.role),
+          {},
+          class: "layui-select",
+          lay_verify: "required" %>
+    </div>
+  </div>
+
+  <% if @user.new_record? %>
+    <div class="layui-form-item">
+      <%= f.label :password, "密码", class: "layui-form-label" %>
+      <div class="layui-input-block">
+        <%= f.password_field :password, class: "layui-input", placeholder: "至少6位字符", lay_verify: "required|pass" %>
+      </div>
+    </div>
+  <% end %>
+
+  <div class="layui-form-item">
+    <div class="layui-input-block">
+      <button class="layui-btn layui-bg-blue" lay-submit lay-filter="component-form-element">立即提交</button>
+      <%= link_to "取消", :admin_accounts, class: "layui-btn layui-btn-primary" %>
+    </div>
+  </div>
+<% end %>

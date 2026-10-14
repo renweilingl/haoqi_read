@@ -1,0 +1,131 @@
+<div class="layui-tab">
+  <div class="x-nav">
+    <span class="layui-breadcrumb">
+      <%= link_to "漫画", :admin_picture_books %>
+      <a><cite><%= @book.name %></cite></a>
+      <a><cite>章节管理</cite></a>
+    </span>
+    <%= render 'common/user_info' %>
+  </div>
+  <div class="x-body">
+    <div class="xblock">
+      <button class="layui-btn layui-bg-blue layui-btn-sm" onclick="batchFree();">批量免费 </button>
+      <button class="layui-btn layui-bg-blue layui-btn-sm" onclick="batchunFree();">批量付费 </button>
+    </div>
+
+    <table class="layui-table" id="main-table"></table>
+  </div>
+</div>
+
+<script type="text/html" id="tool-wrapper">
+  <div class="layui-btn-group">
+    <a href="/admin/picture_books/<%= @book.id %>/catalogues/{{d.id}}/edit" class="layui-btn layui-btn-sm">编辑</a>
+  </div>
+</script>
+
+<script>
+    layui.use(['table'],function(){
+      var table = layui.table;
+      table.render({
+        elem: '#main-table',
+        url: '<%= admin_picture_book_catalogues_path(@book) %>',
+        page: {
+          layout: ['count', 'prev', 'page', 'next', 'limit', 'skip'],
+          groups: 10,
+          limit: 50,
+          theme: '#1E9FFF',
+          first: '首页',
+          last: '尾页',
+          prev: '<em>←</em>',
+          next: '<em>→</em>',
+        },
+        cols: [[
+          {type: 'checkbox', data: 'id'},
+          {field: 'id', title: 'ID', hide: true},
+          {field: 'chapter_number', title: '序号', sort: true, edit: "number", width: 80},
+          {field: 'chapter_name', title: '章节名'},
+          {field: 'is_free', title: '付费类型', align: "center", width: 100, templet: function(d){
+              if(d.is_free == true){
+                return '<span class="layui-badge layui-bg-green">免费</span>';
+              } else {
+                return '<span class="layui-badge layui-bg-gray">付费</span>';
+              }
+            }
+          },
+          {field: 'created_at', title: '上线时间'},
+          {title: '操作', templet: '#tool-wrapper', align: "center", width: 170},
+        ]],
+      });
+
+      table.on('edit(main-table)', function(obj){
+        var value = obj.value // 得到修改后的值
+        var data = obj.data // 得到所在行所有键值
+        var field = obj.field; // 得到字段
+
+        $.ajax({
+          url: '<%= update_sn_admin_picture_book_catalogues_path(@book) %>',
+          dataType: 'json',
+          type: 'post',
+          data: {id: data.id, sn: data.chapter_number},
+          success: function(res) {
+            if(res.code == 0){
+              var update = {};
+              update[field] = value;
+              obj.update(update);
+              layer.msg('修改成功');
+            } else {
+              layer.msg('修改失败');
+            }
+          }
+        })
+      });
+    })
+
+    function get_ids() {
+        var table = layui.table;
+        let ctrCheckArr = [];
+        ctrCheckArr.length = 0;
+        let checkStatus = table.checkStatus('main-table'),
+            data = checkStatus.data; //获取选中的数据
+        for (let i = 0; i < data.length; i++) {
+            ctrCheckArr.push(data[i].id)
+        }
+        return ctrCheckArr;
+    }
+
+    function batchFree() {
+        var ids = get_ids();
+
+        $.ajax({
+          url: '<%= batch_free_admin_picture_book_catalogues_path(@book) %>',
+          dataType: 'json',
+          type: 'post',
+          data: {ids: ids},
+          success: function(res) {
+            if(res.code == 0){
+              window.location.reload();
+            } else {
+              layer.msg('修改失败');
+            }
+          }
+        })
+    }
+
+    function batchunFree() {
+        var ids = get_ids();
+
+        $.ajax({
+          url: '<%= batch_unfree_admin_picture_book_catalogues_path(@book) %>',
+          dataType: 'json',
+          type: 'post',
+          data: {ids: ids},
+          success: function(res) {
+            if(res.code == 0){
+              window.location.reload();
+            } else {
+              layer.msg('修改失败');
+            }
+          }
+        })
+    }
+</script>

@@ -1,0 +1,82 @@
+<div class="layui-tab">
+  <div class="x-nav">
+    <span class="layui-breadcrumb">
+      <a href="">内容管理</a>
+      <a href="/admin/accounts">分类管理</a>
+      <a><cite>分类详情</cite></a>
+    </span>
+    <%= render 'common/user_info' %>
+  </div>
+
+  <div class="x-body">
+    <div class="layui-row layui-col-space15">
+      <div class="layui-col-md8">
+        <div class="layui-card">
+          <div class="layui-card-header">
+            基本信息
+            <%= link_to admin_categories_path, class: "layui-btn layui-btn-primary" do %>
+              <i class="layui-icon layui-icon-return"></i>返回列表
+            <% end %>
+          </div>
+          <div class="layui-card-body">
+            <div class="layui-form" lay-filter="category-info">
+              <div class="layui-form-item">
+                <label class="layui-form-label">ID</label>
+                <div class="layui-input-block">
+                  <div class="layui-form-mid layui-word-aux"><%= @category.id %></div>
+                </div>
+              </div>
+
+              <div class="layui-form-item">
+                <label class="layui-form-label">分类名称</label>
+                <div class="layui-input-block">
+                  <div class="layui-form-mid"><%= @category.name %></div>
+                </div>
+              </div>
+
+              <div class="layui-form-item">
+                <label class="layui-form-label">级别</label>
+                <div class="layui-input-block">
+                  <%
+                    level_colors = {
+                      1 => '#dbeafe',
+                      2 => '#d1fae5',
+                      3 => '#fce7f3'
+                    }
+                    level_text_colors = {
+                      1 => '#1e40af',
+                      2 => '#065f46',
+                      3 => '#9d174d'
+                    }
+                    level_names = {
+                      1 => '一级分类',
+                      2 => '二级分类',
+                      3 => '三级分类'
+                    }
+                  %>
+                  <span class="layui-badge" style="background: <%= level_colors[@category.level] || '#e5e7eb' %>; color: <%= level_text_colors[@category.level] || '#374151' %>;">
+                    <%= level_names[@category.level] %>
+                  </span>
+                </div>
+              </div>
+
+              <div class="layui-form-item">
+                <label class="layui-form-label">创建时间</label>
+                <div class="layui-input-block">
+                  <div class="layui-form-mid layui-word-aux"><%= @category.created_at.strftime("%Y-%m-%d %H:%M:%S") %></div>
+                </div>
+              </div>
+
+              <div class="layui-form-item">
+                <label class="layui-form-label">最后更新</label>
+                <div class="layui-input-block">
+                  <div class="layui-form-mid layui-word-aux"><%= @category.updated_at.strftime("%Y-%m-%d %H:%M:%S") %></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

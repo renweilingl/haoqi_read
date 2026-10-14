@@ -1,0 +1,101 @@
+<div class="left-nav">
+  <div class="logo">
+    <img src="/assets/book.png">少年越读
+  </div>
+  <div id="side-nav">
+    <ul id="nav"> 
+      <li>
+        <a href="javascript:;">
+          <i class="layui-icon layui-icon-file"></i>
+          <cite>内容管理</cite>
+          <i class="iconfont nav_right">&#xe602;</i>
+        </a>
+        <ul class="sub-menu">
+          <li><%= link_to "年级管理", :admin_grades, class: "sub-link" %></li>
+          <li><%= link_to "合辑管理", :admin_compilations, class: "sub-link" %></li>
+          <li><%= link_to "图书漫画", :admin_picture_books, class: "sub-link" %></li>
+          <li><%= link_to "有声视频", :admin_media_books, class: "sub-link" %></li>
+          <li><%= link_to "分类管理", :admin_categories, class: "sub-link" %></li>
+          <% if false %>
+          <li><%= link_to "图书分级", :admin_book_levels, class: "sub-link" %></li>
+          <% end %>
+          <li><%= link_to "排行榜", :grades, class: "sub-link" %></li>
+        </ul>
+      </li>
+
+      <li>
+        <a href="javascript:;">
+          <i class="layui-icon layui-icon-set"></i>
+          <cite>运营工具</cite>
+          <i class="iconfont nav_right">&#xe602;</i>
+        </a>
+        <ul class="sub-menu">
+          <li><%= link_to "推送管理", :push_notifications, class: "sub-link" %></li>
+          <li><%= link_to "开屏广告", :splash_ads, class: "sub-link" %></li>
+        </ul>
+      </li>
+
+      <li>
+        <a href="javascript:;">
+          <i class="layui-icon layui-icon-diamond"></i>
+          <cite>会员管理</cite>
+          <i class="iconfont nav_right">&#xe602;</i>
+        </a>
+        <ul class="sub-menu">
+          <li><%= link_to "会员管理", :operator_app_users, class: "sub-link" %></li>
+          <li><%= link_to "套餐管理", :operator_packages, class: "sub-link" %></li>
+          <li><%= link_to "订单管理", :operator_orders, class: "sub-link" %></li>
+        </ul>
+      </li>
+
+      <li>
+        <a href="javascript:;">
+          <i class="layui-icon layui-icon-chart-screen"></i>
+          <cite>统计报表</cite>
+          <i class="iconfont nav_right">&#xe602;</i>
+        </a>
+        <ul class="sub-menu">
+          <li><%= link_to "年龄分析", :statistic_grade_reports, class: "sub-link" %></li>
+          <li><%= link_to "渠道数据", :statistic_channel_reports, class: "sub-link" %></li>
+          <li><%= link_to "用户新增", :admin_user_stats, class: "sub-link" %></li>
+        </ul>
+      </li>
+
+      <li>
+        <%= link_to :feedbacks, class: "main-link" do %>
+          <i class="layui-icon layui-icon-face-smile-b"></i>用户反馈
+        <% end %>
+      </li>
+
+      <li>
+        <%= link_to :admin_authors, class: "main-link" do %>
+          <i class="layui-icon layui-icon-friends"></i>作者管理
+        <% end %>
+      </li>
+
+      <li>
+        <%= link_to :admin_suppliers, class: "main-link" do %>
+          <i class="layui-icon layui-icon-util"></i>出版社管理
+        <% end %>
+      </li>
+
+      <li>
+        <%= link_to :admin_channels, class: "main-link" do %>
+          <i class="layui-icon layui-icon-app"></i>渠道管理
+        <% end %>
+      </li>
+
+      <li>
+        <a href="javascript:;">
+          <i class="layui-icon layui-icon-set"></i>
+          <cite>权限设置</cite>
+          <i class="iconfont nav_right">&#xe602;</i>
+        </a>
+        <ul class="sub-menu">
+          <li><%= link_to "账号管理", :admin_accounts, class: "sub-link" %></li>
+          <li><%= link_to "角色管理", :admin_permissions, class: "sub-link" %></li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+</div>

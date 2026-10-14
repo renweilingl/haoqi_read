@@ -1,0 +1,13 @@
+<div class="layui-tab">
+  <div class="x-nav">
+    <span class="layui-breadcrumb">
+      <a href="">内容管理</a>
+      <%= link_to "有声视频", :admin_media_books %>
+      <a><cite>新增图书</cite></a>
+    </span>
+    <%= render 'common/user_info' %>
+  </div>
+  <div class="x-body">
+    <%= render 'form' %>
+  </div>
+</div>

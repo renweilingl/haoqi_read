@@ -1,0 +1,138 @@
+<div class="layui-tab">
+  <div class="x-nav">
+    <span class="layui-breadcrumb">
+      <a href="">权限设置</a>
+      <a href="/admin/accounts">账号管理</a>
+      <a><cite>账号详情</cite></a>
+    </span>
+    <%= render 'common/user_info' %>
+  </div>
+
+  <div class="x-body">
+    <div class="layui-col-md8">
+      <div class="layui-card">
+        <div class="layui-card-header">
+          基本信息
+          <%= link_to admin_accounts_path, class: "layui-btn layui-btn-primary" do %>
+            <i class="layui-icon layui-icon-return"></i>返回列表
+          <% end %>
+          <% if policy(@user).update? %>
+            <%= link_to edit_admin_account_path(@user), class: "layui-btn layui-btn-normal" do %>
+              <i class="layui-icon layui-icon-edit"></i>编辑账号
+            <% end %>
+          <% end %>
+        </div>
+        <div class="layui-card-body">
+          <div class="layui-form" lay-filter="account-info">
+            <div class="layui-form-item">
+              <label class="layui-form-label">ID</label>
+              <div class="layui-input-block">
+                <div class="layui-form-mid layui-word-aux"><%= @user.id %></div>
+              </div>
+            </div>
+
+            <div class="layui-form-item">
+              <label class="layui-form-label">用户名</label>
+              <div class="layui-input-block">
+                <div class="layui-form-mid"><%= @user.name %></div>
+              </div>
+            </div>
+
+            <div class="layui-form-item">
+              <label class="layui-form-label">邮箱</label>
+              <div class="layui-input-block">
+                <div class="layui-form-mid"><%= @user.email %></div>
+              </div>
+            </div>
+
+            <div class="layui-form-item">
+              <label class="layui-form-label">角色</label>
+              <div class="layui-input-block">
+                <%
+                  role_colors = {
+                    'super_admin' => '#fef3c7',
+                    'editor' => '#dbeafe',
+                    'operator' => '#d1fae5',
+                    'finance' => '#fce7f3'
+                  }
+                  role_text_colors = {
+                    'super_admin' => '#92400e',
+                    'editor' => '#1e40af',
+                    'operator' => '#065f46',
+                    'finance' => '#9d174d'
+                  }
+                %>
+                <span class="layui-badge" style="background: <%= role_colors[@user.role] || '#e5e7eb' %>; color: <%= role_text_colors[@user.role] || '#374151' %>;">
+                  <%= @user.role_name %>
+                </span>
+              </div>
+            </div>
+
+            <div class="layui-form-item">
+              <label class="layui-form-label">创建时间</label>
+              <div class="layui-input-block">
+                <div class="layui-form-mid layui-word-aux"><%= @user.created_at.strftime("%Y-%m-%d %H:%M:%S") %></div>
+              </div>
+            </div>
+
+            <div class="layui-form-item">
+              <label class="layui-form-label">最后更新</label>
+              <div class="layui-input-block">
+                <div class="layui-form-mid layui-word-aux"><%= @user.updated_at.strftime("%Y-%m-%d %H:%M:%S") %></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="layui-col-md4">
+      <div class="layui-card">
+        <div class="layui-card-body" style="text-align: center;">
+          <div style="
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #16a34a;
+            font-size: 48px;
+            font-weight: bold;
+            margin: 0 auto;
+           ">
+            <%= @user.name[0].upcase %>
+          </div>
+          <div style="margin-top: 20px; color: #666;"><%= @user.name %></div>
+        </div>
+      </div>
+
+      <div class="layui-card">
+        <div class="layui-card-header">
+          快捷操作
+        </div>
+        <div class="layui-card-body">
+          <div class="layui-btn-container" style="width: 100%;">
+            <%= link_to reset_password_admin_account_path(@user), method: :post, class: "layui-btn layui-btn-fluid layui-btn-warm", data: { confirm: "确定要重置此账号的密码吗？" } do %>
+              <i class="layui-icon layui-icon-key"></i>
+              重置密码
+            <% end %>
+            <% if current_user.super_admin? && @user.id != current_user.id %>
+              <%= link_to admin_account_path(@user), method: :delete, class: "layui-btn layui-btn-fluid layui-btn-danger", data: { confirm: "确定要删除此账号吗？此操作不可恢复。" } do %>
+                <i class="layui-icon layui-icon-delete"></i>
+                删除账号
+              <% end %>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .layui-btn-fluid {
+    margin-bottom: 10px;
+  }
+</style>

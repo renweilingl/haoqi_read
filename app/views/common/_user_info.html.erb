@@ -1,0 +1,8 @@
+<ul class="layui-nav x-right">
+  <li class="layui-nav-item">
+    <a href="javascript:;"><i class="layui-icon layui-icon-user" style="margin-right: 4px;"></i><%= current_user.name %></a>
+  </li>
+  <li class="layui-nav-item">
+    <a href=<%= logout_path %> data-method="DELETE" rel="nofollow" data-confirm="确实要退出吗？"><i class="layui-icon layui-icon-logout" style="margin-right: 4px;"></i>退出</a>
+  </li>
+</ul>

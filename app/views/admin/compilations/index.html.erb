@@ -1,0 +1,106 @@
+<div class="layui-tab">                                                                                                    
+  <div class="x-nav">                                                            
+    <span class="layui-breadcrumb">                                              
+      <a href="">内容管理</a>
+      <a><cite>合辑管理</cite></a>
+    </span>
+    <%= render 'common/user_info' %>
+  </div>
+                                                                                 
+  <div class="x-body"> 
+    <div class="layui-row">
+      <div class="layui-col-xs9">
+        <%= search_form_for(@q, url: :admin_categories, :html => {class: :'layui-form layui-col-md12'}) do |f| %>
+          <div class="layui-input-inline">
+            <%= f.text_field :name_cont, class: :'layui-input', placeholder: "合辑名称" %>
+          </div>
+          <button class="layui-btn layui-bg-blue" lay-submit><i class="layui-icon">&#xe615;</i>查询</button>
+          <%= link_to "重置", :admin_compilations, class: "layui-btn layui-btn-primary" %> 
+        <% end %>
+      </div>
+
+      <div class="layui-col-3 text-right">
+        <%= link_to :new_admin_compilation, class: 'layui-btn layui-bg-blue' do %>
+          <i class="layui-icon"></i>新增合辑
+        <% end %>
+      </div>
+    </div>
+
+    <table class="layui-table">
+      <thead>
+        <tr>
+          <th width="80">Banner</th>
+          <th>合辑名称</th>
+          <th>年龄段</th>
+          <th>分类</th>
+          <th>内容</th>
+          <th width="180" style="text-align:center;">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @compilations.each do |compilation| %>
+          <tr>
+            <td>
+              <% if compilation.banner_image_url.present? %>
+                <img src="<%= FileMap.new(compilation.banner_image_url, 'img').secrity_src %>" style="width: 50px; height: 70px; object-fit: cover; border-radius: 4px;" />
+              <% else %>
+                <div style="width: 50px; height: 70px; background: #f0f0f0; border-radius: 4px; display: flex; align-items: center; justify-content: center;">
+                  <i class="layui-icon layui-icon-picture" style="color: #ccc;"></i>
+                </div>
+              <% end %>
+            </td>
+            <td>
+              <div style="font-weight: 500;"><%= compilation.name %></div>
+              <div style="font-size: 12px; color: #9ca3af; margin-top: 4px;">
+                <% if compilation.editor_recommendation.present? %>
+                  <span style="color: #52c41a;">「<%= compilation.editor_recommendation %>」</span>
+                <% end %>
+              </div>
+            </td>
+            <td><%= compilation.grades.pluck(:name).join(" | ") %></td>
+            <td><%= compilation.categories.pluck(:name).join(" | ") %></td>
+            <td><%= compilation.books.pluck(:name).join(" | ") %></td>
+            <td style="text-align:center;">
+              <div class="layui-btn-group">
+                <%= link_to '编辑', edit_admin_compilation_path(compilation), class: "layui-btn layui-btn-sm" %>
+                <%= link_to '内容', admin_compilation_books_path(compilation), class: "layui-btn layui-btn-sm" %>
+                <%= link_to '删除', admin_compilation_path(compilation), method: :delete, class: "layui-btn layui-btn-sm", title: "删除", data: { confirm: "确定要删除此合辑吗？此操作不可恢复。" } %>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+    <% if @compilations.total_pages > 1 %>
+      <div id="pagination" style="margin-top: 20px; text-align: center;"></div>
+    <% end %>
+  </div>
+</div>
+
+<script>
+  layui.use(['laypage', 'form', 'layer'], function(){
+    var laypage = layui.laypage,
+        form = layui.form,
+        layer = layui.layer;
+
+    // 分页
+    <% if @compilations.total_pages > 1 %>
+    laypage.render({
+      elem: 'pagination',
+      count: <%= @compilations.total_entries %>,
+      limit: <%= @compilations.per_page %>,
+      curr: <%= @compilations.current_page %>,
+      layout: ['count', 'prev', 'page', 'next', 'limit', 'skip'],
+      jump: function(obj, first){
+        if(!first){
+          var url = new URL(window.location.href);
+          url.searchParams.set('page', obj.curr);
+          url.searchParams.set('per_page', obj.limit);
+          window.location.href = url.toString();
+        }
+      }
+    });
+    <% end %>
+  });
+</script>

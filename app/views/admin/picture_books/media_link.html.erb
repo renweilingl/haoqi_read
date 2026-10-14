@@ -1,0 +1,144 @@
+<div class="layui-tab">
+  <div class="x-nav">
+    <span class="layui-breadcrumb">
+      <%= link_to "漫画管理", :admin_picture_books %>
+      <a><cite><%= @book.name %></cite></a>
+      <a><cite>有声关联</cite></a>
+    </span>
+    <%= render 'common/user_info' %>
+  </div>
+  
+  <div class="x-body">
+    <div class="layui-card">
+      <div class="layui-card-header">
+        <i class="layui-icon layui-icon-headset"></i> 
+        关联有声图书 - <%= @book.name %>
+      </div>
+      <div class="layui-card-body">
+        <% if @book.media_id.present? %>
+          <div class="layui-alert layui-alert-info" style="margin-bottom: 20px;">
+            <i class="layui-icon layui-icon-tips"></i>
+            当前已关联有声ID: <strong><%= @book.media_id %></strong>
+            <% media_book = Book.find_by(id: @book.media_id) %>
+            <% if media_book %>
+              , 有声名称: <strong><%= media_book.name %></strong>
+            <% end %>
+          </div>
+        <% end %>
+
+        <%= form_tag update_media_link_admin_picture_book_path(@book), method: :put, class: "layui-form" do %>
+          <div class="layui-form-item">
+            <label class="layui-form-label">选择有声:</label>
+            <div class="layui-input-block">
+              <select name="media_id" lay-verify="required" lay-search>
+                <option value="">请选择要关联的有声图书</option>
+                <% if @audio_books.present? %>
+                  <% @audio_books.each do |audio_book| %>
+                    <option value="<%= audio_book.id %>" <%= 'selected' if @book.media_id == audio_book.id %>>
+                      <%= audio_book.name %> (ID: <%= audio_book.id %>)
+                    </option>
+                  <% end %>
+                <% else %>
+                  <option value="" disabled>暂无有声图书</option>
+                <% end %>
+              </select>
+            </div>
+          </div>
+
+          <div class="layui-form-item">
+            <div class="layui-input-block">
+              <button type="submit" class="layui-btn layui-bg-blue" lay-submit lay-filter="submitBtn">
+                <i class="layui-icon">&#xe605;</i> 确认关联
+              </button>
+              <% if @book.media_id.present? %>
+                <button type="button" class="layui-btn layui-btn-primary" onclick="cancelLink()">
+                  <i class="layui-icon">&#xe640;</i> 取消关联
+                </button>
+              <% end %>
+              <%= link_to "返回", admin_picture_books_path, class: "layui-btn layui-btn-normal" %>
+            </div>
+          </div>
+        <% end %>
+
+        <div class="layui-text" style="margin-top: 20px; color: #999; font-size: 12px;">
+          <p><i class="layui-icon layui-icon-tips"></i> 说明:</p>
+          <ul style="margin-left: 20px;">
+            <li>只能关联分类为"有声"的图书</li>
+            <li>关联后,漫画将显示对应的有声播放入口</li>
+            <li>点击"取消关联"可移除当前的有声关联</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+layui.use(['form', 'layer'], function(){
+  var form = layui.form,
+      layer = layui.layer;
+
+  form.on('submit(submitBtn)', function(data){
+    layer.load(2);
+    return true;
+  });
+});
+
+function cancelLink() {
+  layer.confirm('确定要取消有声关联吗?', {
+    icon: 3,
+    title: '提示'
+  }, function(index){
+    var form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '<%= update_media_link_admin_picture_book_path(@book) %>';
+    
+    // Rails CSRF token
+    var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    var csrfParam = document.querySelector('meta[name="csrf-param"]').getAttribute('content');
+    
+    var csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = csrfParam;
+    csrfInput.value = csrfToken;
+    form.appendChild(csrfInput);
+    
+    // Rails PUT方法需要通过_method参数
+    var methodInput = document.createElement('input');
+    methodInput.type = 'hidden';
+    methodInput.name = '_method';
+    methodInput.value = 'PUT';
+    form.appendChild(methodInput);
+    
+    var input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'media_id';
+    input.value = '';
+    
+    form.appendChild(input);
+    document.body.appendChild(form);
+    form.submit();
+    
+    layer.close(index);
+  });
+}
+</script>
+
+<style>
+.layui-alert {
+  padding: 12px 16px;
+  border-radius: 4px;
+  background-color: #e6f7ff;
+  border: 1px solid #91d5ff;
+  color: #096dd9;
+}
+
+.layui-alert i {
+  margin-right: 8px;
+}
+
+.layui-card {
+  max-width: 800px;
+  margin: 0 auto;
+}
+</style>

@@ -1,0 +1,91 @@
+<div class="layui-tab">
+  <div class="x-nav">
+    <span class="layui-breadcrumb">
+      <a href="<%= admin_categories_path %>">分类管理</a>
+      <a><cite><%= @category.name %></cite></a>
+      <a><cite>二级分类管理</cite></a>
+    </span>
+    <%= render 'common/user_info' %>
+  </div>
+
+  <div class="x-body">
+    <div class="layui-form" style="margin-bottom: 15px;">
+      <div class="layui-form-item" style="margin: 0;">
+        <div class="layui-inline">
+          <a class="layui-btn layui-bg-blue" href="<%= new_admin_category_category_sub_path(@category) %>">
+            <i class="layui-icon layui-icon-add-1"></i> 新增二级分类
+          </a>
+          <a class="layui-btn layui-btn-primary" href="<%= admin_categories_path %>">返回</a>
+        </div>
+      </div>
+
+      <table class="layui-table" id="main-table"></table>
+    </div>
+  </div>
+</div>
+
+<script type="text/html" id="tool-wrapper">
+  <div class="layui-btn-group">
+    <a href="/admin/categories/<%= @category.id %>/category_subs/{{d.id}}/edit" class="layui-btn layui-btn-sm">编辑</a>
+    <a data-method="delete" href="/admin/categories/<%= @category.id %>/category_subs/{{d.id}}" class="layui-btn layui-btn-sm layui-bg-red" data-confirm="确实要删除吗？">删除
+</a>
+  </div>
+</script>
+
+<script>
+  layui.use(['table'],function(){
+      var table = layui.table;
+      table.render({
+        elem: '#main-table',
+        url: '<%= admin_category_category_subs_path(@category) %>',
+        page: {
+          layout: ['count', 'prev', 'page', 'next', 'limit', 'skip'],
+          groups: 10,
+          limit: 50,
+          theme: '#1E9FFF',
+          first: '首页',
+          last: '尾页',
+          prev: '<em>←</em>',
+          next: '<em>→</em>',
+        },
+        cols: [[                                                                 
+          {field: 'id', title: 'ID', hide: true},                                
+          {field: 'name', title: '名称'},                      
+          {field: 'sn', title: '序号', sort: true, edit: "number", width: 80},   
+          //{field: 'icon_url', title: '图标', align: "center", width: 100, templet: function(d){
+          //    if(d.icon_state == true){
+          //      return '<img style="height: 100%;" src="' + d.icon_url + '">';
+          //    } else {
+          //      return '<div style="width: 48px; background-color: #52c41a20; border-radius: 4px; display: flex; align-items: center; justify-content: center;"><i class="layui-icon layui-icon-picture" style="color: #52c41a; font-size: 20px;"></i></div>';
+          //    }
+          //  }
+          //},
+          {field: 'created_at', title: '上线时间'},                              
+          {title: '操作', templet: '#tool-wrapper', align: "center", width: 170},
+        ]],                                                                      
+      }); 
+
+      table.on('edit(main-table)', function(obj){                                
+        var value = obj.value // 得到修改后的值                                  
+        var data = obj.data // 得到所在行所有键值                                
+        var field = obj.field; // 得到字段                                       
+                                                                                 
+        $.ajax({                                                                 
+          url: '<%= update_sn_admin_category_category_subs_path(@category) %>',
+          dataType: 'json',
+          type: 'post',
+          data: {id: data.id, sn: data.sn},
+          success: function(res) {
+            if(res.code == 0){
+              var update = {};
+              update[field] = value;
+              obj.update(update);
+              layer.msg('修改成功');
+            } else {
+              layer.msg('修改失败');
+            }
+          }
+        })
+      });
+  })
+</script>

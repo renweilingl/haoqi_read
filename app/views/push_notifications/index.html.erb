@@ -1,0 +1,158 @@
+<div class="layui-tab">
+  <div class="x-nav">
+    <span class="layui-breadcrumb">
+      <a href="">运营工具</a>
+      <a><cite>推送管理</cite></a>
+    </span>                                                                      
+    <%= render 'common/user_info' %>
+  </div>
+  <div class="x-body">
+    <div class="layui-row">
+      <div class="layui-col-xs9">
+        <%= search_form_for(@q, url: :push_notifications, :html => {class: :'layui-form layui-col-md12'}) do |f| %>
+          <div class="layui-input-inline" style="width: 180px;">
+            <%= f.select :push_type_eq, options_for_select([['系统通知', 'system_notification'], ['活动通知', 'activity_notification']], @q.push_type_eq), { include_blank: "全部通知类型" } %>
+          </div>
+          <div class="layui-input-inline" style="width: 180px;">
+             <%= f.select :status_eq, options_for_select([['草稿', 'draft'], ['待发送', 'scheduled'],['发送中', 'sending'],['已发送', 'sent'], ['发送失败', 'failed']], @q.status_eq), { include_blank: "全部状态" } %>
+          </div>
+          <div class="layui-input-inline" style="width: 160px;">
+            <%= f.text_field :title_cont, class: :'layui-input', placeholder: "搜索标题" %>
+          </div>
+          <button class="layui-btn layui-bg-blue" lay-submit><i class="layui-icon">&#xe615;</i>查询</button>
+          <%= link_to "重置", :push_notifications, class: "layui-btn layui-btn-primary" %>
+        <% end %>
+      </div>
+
+      <div class="layui-col-xs3 text-right">
+        <%= link_to :new_push_notification, class: 'layui-btn layui-bg-blue' do %>
+          <i class="layui-icon"></i>新增推送
+        <% end %>
+      </div>
+    </div>
+
+    <table class="layui-table" lay-size="lg">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>类型</th>
+          <th>标题</th>
+          <th>推送范围</th>
+          <th>状态</th>
+          <!--th>发送数</th>
+          <th>点击数</th>
+          <th>送达率</th-->
+          <th>创建时间</th>
+          <th width="240" style="text-align:center;">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @push_notifications.each do |push| %>
+          <tr>
+            <td><%= push.id %></td>
+            <td>
+              <% if push.push_type_system_notification? %>
+                <span class="layui-badge layui-bg-blue">系统</span>
+              <% else %>
+                <span class="layui-badge layui-bg-orange">活动</span>
+              <% end %>
+            </td>
+            <td>
+              <a href="<%= push_notification_path(push) %>" class="link-primary"><%= truncate(push.title, length: 20) %></a>
+            </td>
+            <td><%= push.scope_display %></td>
+            <td>
+              <% case push.status %>
+              <% when 'scheduled' %>
+                <span class="layui-badge layui-bg-cyan">待发送</span>
+              <% when 'sent' %>
+                <span class="layui-badge layui-bg-green">已发送</span>
+              <% end %>
+            </td>
+            <td><%= push.created_at.strftime('%Y-%m-%d %H:%M') %></td>
+            <td style="text-align:center;">
+              <div class="layui-btn-group">
+                <%= link_to push_notification_path(push), class: "layui-btn layui-btn-xs" do %>
+                  <i class="layui-icon layui-icon-about"></i> 详情
+                <% end %>
+                <% if push.scheduled? %>
+                  <%= link_to edit_push_notification_path(push), class: "layui-btn layui-btn-xs layui-btn-normal" do %>
+                    <i class="layui-icon layui-icon-edit"></i> 编辑
+                  <% end %>
+                  <% if false %>
+                  <%= link_to send_push_push_notification_path(push), 
+                      method: :post,
+                      data: { confirm: push.scheduled? ? '确认发送此推送？' : '确认立即推送？' },
+                      class: "layui-btn layui-btn-xs layui-btn-warm" do %>
+                    <i class="layui-icon layui-icon-about"></i> 发送
+                  <% end %>
+                  <% end %>
+                  <%= link_to push_notification_path(push), 
+                      method: :delete,
+                      data: { confirm: '确定删除？' },
+                      class: "layui-btn layui-btn-xs layui-btn-danger" do %>
+                    <i class="layui-icon layui-icon-delete"></i> 删除
+                  <% end %>
+                <% end %>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+      
+    <% if @push_notifications.total_pages > 1 %>
+      <div id="pagination" style="margin-top: 20px;"></div>
+    <% end %>
+  </div>
+</div>
+
+<style>
+  .link-primary { color: #1a73e8; }
+  .link-primary:hover { color: #1557b0; text-decoration: underline; }
+  
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+  
+  .page-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0;
+  }
+  
+  .page-actions {
+    display: flex;
+    gap: 8px;
+  }
+</style>
+
+<script>
+  layui.use(['laypage', 'form'], function(){
+    var laypage = layui.laypage,
+        form = layui.form;
+
+    // 分页
+    <% if @push_notifications.total_pages > 1 %>
+    laypage.render({
+      elem: 'pagination',
+      count: <%= @push_notifications.total_entries %>,
+      limit: <%= @push_notifications.per_page %>,
+      curr: <%= @push_notifications.current_page %>,
+      layout: ['count', 'prev', 'page', 'next', 'limit', 'skip'],
+      jump: function(obj, first){
+        if(!first){
+          var url = new URL(window.location.href);
+          url.searchParams.set('page', obj.curr);
+          url.searchParams.set('per_page', obj.limit);
+          window.location.href = url.toString();
+        }
+      }
+    });
+    <% end %>
+  });
+</script>

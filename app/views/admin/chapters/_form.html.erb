@@ -1,0 +1,193 @@
+<%= form_for(@chapter, url: @chapter.new_record? ? admin_media_book_chapters_path(@book) : admin_media_book_chapter_path(@book), method: @chapter.new_record? ? :post : :put, :html => {:class => "layui-form"}) do |f| %>
+  <div class="layui-form-item">
+    <label class="layui-form-label">序号</label>
+    <div class="layui-input-block">
+      <%= f.number_field :sn, class: "layui-input", min: 1, step: 1, required: true %>
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <label class="layui-form-label">状态</label>
+    <div class="layui-input-block">
+      <%= f.radio_button :is_published, true, title: "上线" %>
+      <%= f.radio_button :is_published, false, title: "下线" %>
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <label class="layui-form-label">发布日期</label>
+    <div class="layui-input-inline">
+      <%= f.text_field :publish_date, class: "layui-input", id: "ID-laydate-demo", placeholder: "yyyy-MM-dd" %>
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <label class="layui-form-label">是否免费</label>
+    <div class="layui-input-block">
+      <%= f.radio_button :is_free, true, title: "免费" %>
+      <%= f.radio_button :is_free, false, title: "付费" %>
+    </div>
+  </div>
+
+  <div class="layui-form-item">                                                  
+    <label class="layui-form-label">内容文件</label>                             
+    <div class="layui-input-block">                                              
+      <div class="layui-upload-drag" id="file-upload" style="width: 100%; padding: 30px; text-align: center;">
+        <i class="layui-icon layui-icon-upload" style="font-size: 48px; color: #9ca3af;"></i>
+        <p style="margin-top: 15px; color: #6b7280;">点击上传，或将文件拖拽到此处</p>
+        <p class="layui-word-aux" id="file-restriction" style="margin-top: 5px;">支持格式：wav、mp3、mp4、mov</p>
+      </div>                                                                     
+      <div id="upload-progress" style="display: none; margin-top: 15px;">
+        <div class="layui-progress" lay-filter="upload-progress">
+          <div class="layui-progress-bar" lay-percent="0%"></div>
+        </div>
+        <div style="margin-top: 10px; text-align: center;">
+          <span id="upload-status">上传中...</span>
+          <span id="upload-percent">0%</span>
+        </div>
+      </div>
+
+      <% if @chapter.new_record? %>
+        <div id="upload-result" style="display: none; margin-top: 15px;" class="layui-card">
+          <div class="layui-card-body" style="padding: 15px;">
+            <div style="display: flex; align-items: center; gap: 15px;">
+              <i class="layui-icon layui-icon-ok-circle" style="font-size: 32px; color: #10b981;"></i>
+              <div>
+                <div id="file-name" style="font-weight: bold;"></div>
+                <div style="display: flex; gap: 10px;">
+                  <span id="file-type-badge" class="layui-badge"></span>
+                  <span id="file-size" class="layui-word-aux"></span>
+                </div>
+              </div>
+              <div style="margin-left: auto;">
+                <button type="button" class="layui-btn layui-btn-xs layui-btn-danger" id="remove-file">移除</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% else %>
+        <div id="upload-result" class="layui-card" style="display: inline-block; padding: 15px;">
+          <div style="display: flex; align-items: center; gap: 15px;">
+            <div style="width: 40px; height: 40px; background-color: <%= @chapter.file_type_color %>20; border-radius: 4px; display: flex; align-items: center; justify-content: center;">
+                  <i class="layui-icon <%= @chapter.file_type_icon %>" style="color: <%= @chapter.file_type_color %>; font-size: 20px;"></i>
+            </div>
+            <div>
+              <div id="file-name" style="font-weight: bold;"></div>
+              <div id="file-type-badge" style="font-weight: bold;"><%= @chapter.name %></div>
+            </div>
+            <div style="margin-left: auto;">
+              <button type="button" class="layui-btn layui-btn-xs layui-btn-danger" id="remove-file">移除</button>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <%= f.hidden_field :content_file_url, id: "file-url-hidden" %>
+    <%= f.hidden_field :content_file_name, id: "file-name-hidden" %>
+    <%= f.hidden_field :content_file_type, id: "file-type-hidden" %>
+    <%= f.hidden_field :duration, id: "duration-hidden" %>
+  </div>
+
+  <div class="layui-form-item">
+    <label class="layui-form-label">标题</label>
+    <div class="layui-input-block">
+      <%= f.text_field :name, class: "layui-input", id: "chapter-name" %>
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <div class="layui-input-block">
+      <button type="submit" class="layui-btn layui-bg-blue" lay-submit lay-filter="submit-content">
+        <i class="layui-icon layui-icon-release"></i>提交保存                                                                    </button>
+      <%= link_to "取消", admin_media_book_chapters_path(@book), class: "layui-btn layui-btn-primary" %>
+    </div>
+  </div>
+<% end %>
+
+<script>
+  layui.use(['form', 'upload', 'layer'], function(){
+    var form = layui.form,
+        laydate = layui.laydate,
+        upload = layui.upload,
+        layer = layui.layer,
+
+        $ = layui.$;
+
+        laydate.render({
+            elem: '#ID-laydate-demo'
+        });
+
+        form.render();
+
+        // 文件上传
+        var uploadInst = upload.render({
+          elem: '#file-upload',
+          url: '<%= upload_media_files_path %>',
+          auto: true,
+          accept: 'file',
+          exts: 'mp3|mp4|wav|mov',
+          //size: 409600, // 400MB
+          size: 1024 * 1024, // 1GB
+          before: function(obj){
+          // 显示进度条
+            $('#upload-progress').show();
+            $('#upload-result').hide();
+            element.progress('upload-progress', '0%');
+            $('#upload-percent').text('0%');
+            $('#upload-status').text('上传中...');
+          },
+          progress: function(n, elem){
+            element.progress('upload-progress', n + '%');
+            $('#upload-percent').text(n + '%');
+          },
+          done: function(res){
+            if (res.code === 0) {
+              $('#upload-progress').hide();
+              $('#upload-result').show();
+              $('#file-name').text(res.data.file_name);
+              $('#file-size').text(res.data.file_size);
+
+              $('#file-url-hidden').val(res.data.file_url);
+              $('#file-name-hidden').val(res.data.file_name);
+              $('#chapter-name').val(res.data.file_name);
+              $('#file-type-hidden').val(res.data.file_type);
+
+              // Auto-fill duration from upload response
+              if (res.data.duration && res.data.duration > 0) {
+                $('#duration-hidden').val(res.data.duration);
+              }
+
+              var fileTypeColors = {                                                 
+                'epub': '#10b981',                                                   
+                'pdf': '#ef4444',                                                    
+                'mp3': '#8b5cf6',                                                    
+                'mp4': '#3b82f6'                                                     
+              };                                                                     
+              var fileType = res.data.file_type || '';                               
+              $('#file-type-badge').text(res.data.file_type_name || fileType.toUpperCase());
+              if (fileTypeColors[fileType]) {                                        
+                $('#file-type-badge').css('background-color', fileTypeColors[fileType]);
+              }                                                                      
+                                                                                 
+              layer.msg('上传成功', {icon: 6});                                      
+            } else {                                                                 
+              layer.msg(res.msg || '上传失败', {icon: 5});                           
+              $('#upload-progress').hide();                                          
+            }                                                                        
+          }, 
+          error: function(){                                                         
+            layer.msg('上传失败，请重试', {icon: 5});                                
+            $('#upload-progress').hide();                                            
+          }                                                                          
+        }); 
+
+        $('#remove-file').on('click', function(){
+          $('#upload-result').hide();
+          $('#file-url-hidden').val('');
+          $('#file-name-hidden').val('');
+          $('#duration-hidden').val('');
+          layer.msg('已移除文件', {icon: 6});
+        });
+  })
+</script>

@@ -1,0 +1,55 @@
+<div class="layui-tab">                                                          
+  <div class="x-nav">
+    <span class="layui-breadcrumb">                                              
+      <a href="/grades">排行榜</a>
+      <%= link_to @grade.name, grade_ranks_path(@grade) %>
+      <a><cite><%= @rank.name %></cite></a>
+      <a><cite>排行榜内容</cite></a>
+    </span>
+    <%= render 'common/user_info' %>
+  </div>
+
+  <div class="x-body">
+
+    <div class="layui-row">
+      <div class="layui-col-xs9">
+      </div>
+
+      <div class="layui-col-3 text-right">
+        <a href="<%= new_grade_rank_rank_content_path(@grade, @rank) %>" class="layui-btn layui-btn-normal">
+          <i class="layui-icon layui-icon-add-1"></i> 添加内容
+        </a>
+      </div>
+    </div>
+
+    <table class="layui-table">
+      <thead>
+        <tr>
+          <th width="120">类型</th>
+          <th width="120">内容</th>
+          <th width="60">序号</th>
+          <th width="140">添加时间</th>
+          <th width="120" style="text-align:center;">操作</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <% @contents.each do |r| %>
+          <tr>
+            <td><%= r.content_type_name %></td>
+            <td><%= r.content_name %></td>
+            <td><%= r.sn %></td>
+            <td><%= r.created_at.strftime("%Y-%m-%d") %></td>
+            <td style="text-align:center;">
+              <div class="layui-btn-group">
+                <%= link_to "编辑", edit_grade_rank_rank_content_path(@grade, @rank, r), class: "layui-btn layui-btn-sm" %>
+                <%= link_to '删除', grade_rank_rank_content_path(@grade, @rank, r), method: :delete, class: "layui-btn layui-btn-sm layui-btn-danger", title: "删除", data: { confirm: "确定要删除该内容吗？此操作不可恢复。" } %>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+  </div>
+</div>

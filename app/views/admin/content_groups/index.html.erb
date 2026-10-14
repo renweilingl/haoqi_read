@@ -1,0 +1,110 @@
+<div class="layui-tab">
+  <div class="x-nav">
+    <span class="layui-breadcrumb">
+      <%= link_to "年级管理", :admin_grades %>
+      <%= link_to @grade.name, admin_grade_recommends_path(@grade) %>
+      <a><cite><%= @recommend.name %></cite></a>
+      <a><cite>分组管理</cite></a>
+    </span>
+    <%= render 'common/user_info' %>
+  </div>
+  <div class="x-body">
+    <div class="layui-form" style="margin-bottom: 15px;">
+      <div class="layui-form-item" style="margin: 0;">
+        <div class="layui-inline">
+          <a class="layui-btn layui-bg-blue" href="<%= new_admin_grade_recommend_content_group_path(@grade, @recommend) %>">
+            <i class="layui-icon layui-icon-add-1"></i> 新增内容分组
+          </a>
+          <a class="layui-btn layui-btn-primary" href="<%= admin_grade_recommends_path(@grade) %>">
+            <i class="layui-icon layui-icon-return"></i> 返回
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <table class="layui-table">
+      <thead>
+        <tr>
+          <th width="140">名称</th>
+          <th width="120">分组类型</th>
+          <th width="60">排序</th>
+          <th>内容</th>
+          <th width="160">添加时间</th>
+          <th width="200" style="text-align:center;">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @content_groups.each do |r| %>
+          <tr>
+            <td><%= r.name %></td>
+            <td><%= r.group_type_name %></td>
+            <td><%= r.sn %></td>
+            <td><%= r.content_names %></td>
+            <td><%= r.created_at.strftime('%Y-%m-%d') %></td>
+            <td style="text-align:center;">
+              <div class="layui-btn-group">
+                <%= link_to '内容管理', admin_grade_recommend_content_group_path(@grade, @recommend, r), class: "layui-btn layui-btn-sm" %>
+                <%= link_to '编辑', edit_admin_grade_recommend_content_group_path(@grade, @recommend, r), class: "layui-btn layui-btn-sm" %>
+                <%= link_to '删除', admin_grade_recommend_content_group_path(@grade, @recommend, r), method: :delete, class: "layui-btn layui-btn-sm layui-btn-danger", title: "删除", data: { confirm: "确定要删除分组吗？此操作不可恢复。" } %>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+layui.use(['layer'], function(){
+  var layer = layui.layer;
+  var $ = layui.$;
+
+  // 状态切换
+  $(document).on('click', 'a[data-method="post"]', function(e){
+    e.preventDefault();
+    var url = $(this).attr('href');
+
+    layer.confirm('确定要执行此操作吗？', function(index){
+      $.ajax({
+        url: url,
+        type: 'POST',
+        success: function(res){
+          if (res.success || res.notice) {
+            layer.msg(res.notice || '操作成功', {icon: 1}, function(){
+              window.location.reload();
+            });
+          } else {
+            layer.msg(res.error || '操作失败', {icon: 2});
+          }
+        }
+      });
+      layer.close(index);
+    });
+  });
+
+  // 删除确认
+  $(document).on('click', 'a[data-method="delete"]', function(e){
+    e.preventDefault();
+    var url = $(this).attr('href');
+    var confirmMsg = $(this).data('confirm') || '确定要删除吗？';
+
+    layer.confirm(confirmMsg, function(index){
+      $.ajax({
+        url: url,
+        type: 'DELETE',
+        success: function(res){
+          if (res.success || res.notice) {
+            layer.msg(res.notice || '删除成功', {icon: 1}, function(){
+              window.location.reload();
+            });
+          } else {
+            layer.msg(res.error || '删除失败', {icon: 2});
+          }
+        }
+      });
+      layer.close(index);
+    });
+  });
+});
+</script>

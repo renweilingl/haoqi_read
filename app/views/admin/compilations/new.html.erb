@@ -1,0 +1,13 @@
+<div class="layui-tab">
+  <div class="x-nav">
+    <span class="layui-breadcrumb">
+      <a href="">内容管理</a>
+      <%= link_to "合辑管理", :admin_compilations %>
+      <a><cite>新增合辑</cite></a>
+    </span>
+    <%= render 'common/user_info' %>
+  </div>
+  <div class="x-body">
+    <%= render 'form' %>
+  </div>
+</div>

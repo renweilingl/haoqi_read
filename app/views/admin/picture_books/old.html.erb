@@ -1,0 +1,376 @@
+<%= stylesheet_link_tag 'wangeditor', media: 'all' %>                                                                      
+<%= javascript_include_tag 'wangeditor', 'data-turbolinks-track': 'reload' %>
+<%= form_for(@book, url: @book.new_record? ? :admin_picture_books : :admin_picture_book,method: @book.new_record? ? :post : :put, :html => {:class => "layui-form"}) do |f| %> 
+  <fieldset class="layui-elem-field layui-field-title">
+    <legend><i class="layui-icon layui-icon-note"></i> 基本信息</legend>
+  </fieldset>
+
+
+  <div class="layui-form-item">
+    <%= f.label :lan_type, class: "layui-form-label" do %>
+      <span class="required">*</span> 类型
+    <% end %>
+    <div class="layui-input-block">
+      <% Category.where(name: ["图书", "漫画"]).each do |x| %>
+        <input type="radio" lay-filter="levelFilter" name="book[category_id]" value=<%= x.id %> title="<%= x.name %>" <%= 'checked' if @book.category_id == x.id %> <%= 'disabled' unless @book.new_record? %>>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <label class="layui-form-label">二级分类</label>
+    <div class="layui-input-block" id="category-sub-wrap">
+      <% CategorySub.by_category_id(@book.category_id).each do |cat| %>
+        <input type="checkbox" name="book[category_sub_ids][]" value=<%= cat.id %> title="<%= cat.name %>" <%= 'checked' if @book.category_sub_ids.include?(cat.id) %> />
+      <% end %>
+    </div>
+  </div>
+
+  <% if false %>
+  <div class="layui-form-item" style="display:  <%= @book.category_id == 1 ? 'block' : 'none' %>;" id="level-wrap">
+    <label class="layui-form-label">图书分级</label>
+    <div class="layui-input-block">
+      <% BookLevel.all.sorted.each do |x| %>
+        <input type="radio" name="book[book_level_id]" value=<%= x.id %> title="<%= x.name %>" <%= 'checked' if @book.book_level_id == x.id %>>
+      <% end %>
+    </div>
+  </div>
+  <% end %>
+
+  <div class="layui-form-item">
+    <label class="layui-form-label">年龄范围</label>
+    <div class="layui-input-block">
+      <div class="grade-checkbox" id="grade-checkbox">
+        <% Grade.all.each do |grade| %>
+          <input type="checkbox" name="book[grade_ids][]" value=<%= grade.id %> title="<%= grade.name %>" <%= 'checked' if @book.grade_ids.include?(grade.id) %> />
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <%= f.label :name, class: "layui-form-label" do %>
+      <span class="required">*</span> 图书名称
+    <% end %>
+    <div class="layui-input-block">
+      <%= f.text_field :name, class: "layui-input", placeholder: "请输入图书名称", maxlength: 100, required: true %>
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <label class="layui-form-label">是否免费</label>
+    <div class="layui-input-block">
+      <%= f.radio_button :is_free, true, title: "免费" %>
+      <%= f.radio_button :is_free, false, title: "付费" %>
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <label class="layui-form-label">发布状态</label>
+    <div class="layui-input-block">
+      <%= f.radio_button :is_published, true, title: "发布" %>
+      <%= f.radio_button :is_published, false, title: "下线" %>
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <%= f.label :cover_image_url, class: "layui-form-label" do %>
+      <span class="required">*</span> 图书封面
+    <% end %>
+    <div class="layui-input-block">
+      <div class="layui-upload">
+        <button type="button" class="layui-btn layui-btn-normal" id="upload-cover">
+          <i class="layui-icon layui-icon-upload"></i> 上传封面
+        </button>
+        <span class="upload-tip" style="margin-left: 10px; color: #999;">支持 JPG、PNG、WebP 格式</span>
+      </div>
+      <div id="cover-preview" style="margin-top: 10px; display: <%= @book.cover_image_url.blank? ?  'none' : 'block' %>;">
+        <img id="cover-img" src="<%= @book.cover_image_url.blank? ? '' : FileMap.new(@book.cover_image_url, 'img').secrity_src %>" style="max-width: 200px; max-height: 280px; border-radius: 4px; border: 1px solid #e6e6e6;">
+        <button type="button" class="layui-btn layui-btn-xs layui-btn-danger cover-remove" style="margin-left: 10px;">
+          <i class="layui-icon layui-icon-close"></i> 移除
+        </button>
+      </div>
+      <%= f.hidden_field :cover_image_url, id: "cover_image_url" %>
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <label class="layui-form-label">内容文件</label>
+    <div class="layui-input-block">
+      <div class="layui-upload-drag" id="file-upload" style="width: 100%; padding: 30px; text-align: center;">
+        <i class="layui-icon layui-icon-upload" style="font-size: 48px; color: #9ca3af;"></i>
+        <p style="margin-top: 15px; color: #6b7280;">点击上传，或将文件拖拽到此处</p>
+        <p class="layui-word-aux" id="file-restriction" style="margin-top: 5px;">支持格式：epub、pdf</p>
+      </div>
+      <div id="upload-progress" style="display: none; margin-top: 15px;">
+        <div class="layui-progress" lay-filter="upload-progress">
+          <div class="layui-progress-bar" lay-percent="0%"></div>
+        </div>
+        <div style="margin-top: 10px; text-align: center;">
+          <span id="upload-status">上传中...</span>
+          <span id="upload-percent">0%</span>
+        </div>
+      </div>
+    </div>
+
+    <% if @book.new_record? %>
+    <div id="upload-result" style="display: none; margin-top: 15px;" class="layui-card">
+      <div class="layui-card-body" style="padding: 15px;">
+        <div style="display: flex; align-items: center; gap: 15px;">         
+          <i class="layui-icon layui-icon-ok-circle" style="font-size: 32px; color: #10b981;"></i>
+          <div>                                                              
+            <div id="file-name" style="font-weight: bold;"></div>            
+            <div style="display: flex; gap: 10px;">                          
+              <span id="file-type-badge" class="layui-badge"></span>         
+            </div>                                                           
+          </div>                                                             
+          <div style="margin-left: auto;">                                   
+            <button type="button" class="layui-btn layui-btn-xs layui-btn-danger" id="remove-file">移除</button>
+          </div>                                                             
+        </div>  
+      </div>
+    </div>
+    <%  else %> 
+    <div id="upload-result" class="layui-card" style="display: inline-block; padding: 15px;"> 
+      <div style="display: flex; align-items: center; gap: 15px;">           
+        <div style="width: 40px; height: 40px; background-color: <%= @book.file_type_color %>20; border-radius: 4px; display: flex; align-items: center; justify-content: center;">
+          <i class="layui-icon <%= @book.file_type_icon %>" style="color: <%= @book.file_type_color %>; font-size: 20px;"></i>
+        </div>                                                               
+        <div>                                                                
+          <div id="file-name" style="font-weight: bold;"><%= @book.file_name %></div>
+          <div style="display: flex; gap: 10px;">
+            <span id="file-type-badge" class="layui-badge"><%= @book.file_type %></span>
+          </div>  
+        </div>                                                               
+        <div style="margin-left: auto;">                                     
+          <button type="button" class="layui-btn layui-btn-xs layui-btn-danger" id="remove-file">移除</button>
+        </div>                                                               
+      </div>                                                                 
+    </div> 
+    <%  end %> 
+
+    <%= f.hidden_field :file_url, id: "file-url-hidden" %>
+    <%= f.hidden_field :file_name, id: "file-name-hidden" %>
+    <%= f.hidden_field :file_type, id: "file-type-hidden" %>
+  </div>
+
+  <div class="layui-form-item">
+    <%= f.label :supplier_id, class: "layui-form-label" do %>
+      <span class="required">*</span> 出版社
+    <% end %>
+    <div class="layui-input-block">
+      <%= f.select :supplier_id,
+            options_from_collection_for_select(@suppliers, :id, :name, @book.supplier_id),
+            { include_blank: '请选择出版社' },
+            { class: "layui-input", style: "width: 250px;" } %>
+    </div>
+  </div>
+
+
+  <div class="layui-form-item">
+    <label class="layui-form-label">作者</label>
+    <div class="layui-input-block">
+      <select name="book[author_id]" lay-search="" lay-verify="required">
+        <option value="">请选择作者</option>
+        <% Author.all.each do |x| %>
+          <option value="<%= x.id %>" <%= "selected" if @book.author_id == x.id %>><%= x.name %></option>
+        <% end %>
+      </select>
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <%= f.label :content_description, "内容简介", class: "layui-form-label" %>
+    <div class="layui-input-block">
+      <div id="richtext-editor" class="description-editor" style="min-height: 200px;">
+        <div id="wang-editor-toolbar" style="border-bottom: 1px solid #e6e6e6;"></div>
+        <div name="content_description" id="wang-editor-content" style="height: 320px; overflow-y: auto;border: 1px solid #e6e6e6;"></div>
+        <%= f.hidden_field :content_description, id: "content-description-hidden" %>
+      </div>
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <div class="layui-input-block">
+      <button type="submit" class="layui-btn layui-bg-blue" lay-submit lay-filter="submit-content">
+        <i class="layui-icon layui-icon-release"></i>提交保存
+      </button>
+      <%= link_to "取消", :admin_picture_books, class: "layui-btn layui-btn-primary" %>
+    </div>
+  </div>
+<% end %>
+
+<script>
+  layui.use(['form', 'upload', 'layer'], function(){
+    var form = layui.form,
+        laydate = layui.laydate,
+        upload = layui.upload,
+        layer = layui.layer,
+        $ = layui.$;
+
+    form.render();
+
+    form.on('radio(levelFilter)', function(data) {
+        var cat_id = data.value;
+        //console.log('被选中的值:', cat_id);
+        $.ajax({
+            url: "/admin/categories/" + cat_id + "/subs",
+            type: 'get',
+            dataType: 'json',
+            data: {},
+            success: function (json) {
+                $("#category-sub-wrap").html(json.sub_opts);
+                if(1 === parseInt(cat_id)){
+                    $("#level-wrap").show();
+                } else {
+                    $("#level-wrap").hide();
+                }
+                form.render();
+            },
+            error: function (e) {
+            }
+        });
+    });
+
+    upload.render({
+      elem: '#upload-cover',
+      url: '<%= upload_img_files_path %>',
+      accept: 'images',
+      exts: 'jpg|jpeg|png|gif|webp',
+      size: 5 * 1024,
+      done: function(res){
+        if(res.success){
+          $('#cover_image_url').val(res.url);
+          $('#cover-img').attr('src', res.preivew_url);
+          $('#cover-preview').show();
+          layer.msg('上传成功');
+        } else {
+          layer.msg(res.message || '上传失败', {icon: 2});
+        }
+      },
+      error: function(){
+        layer.msg('上传失败', {icon: 2});
+      }
+    });
+
+    $('.cover-remove').on('click', function(){
+      $('#cover_image_url').val('');
+      $('#cover-preview').hide();
+    });
+
+    var uploadInst = upload.render({
+        elem: '#file-upload',
+        url: '<%= upload_files_path %>',
+        auto: true,
+        accept: 'file',
+        exts: 'pdf|epub',
+        size: 409600,
+        before: function(obj){
+            $('#upload-progress').show();
+            $('#upload-result').hide();
+            element.progress('upload-progress', '0%');
+            $('#upload-percent').text('0%');
+            $('#upload-status').text('上传中...');
+        },
+        progress: function(n, elem){
+            element.progress('upload-progress', n + '%');
+            $('#upload-percent').text(n + '%');
+        },
+        done: function(res){                                                       
+          if (res.code === 0) {                                                    
+              $('#upload-progress').hide();                                          
+              $('#upload-result').show();                                            
+              $('#file-name').text(res.data.file_name);                              
+              $('#file-url-hidden').val(res.data.file_url);                      
+              $('#file-name-hidden').val(res.data.file_name);                    
+              $('#file-type-hidden').val(res.data.file_type);                    
+              var fileTypeColors = {                                                 
+                'epub': '#10b981',                                                   
+                'pdf': '#ef4444',                                                    
+                'mp3': '#8b5cf6',                                                    
+                'mp4': '#3b82f6'                                                     
+              };                                                                     
+              var fileType = res.data.file_type || '';                               
+              $('#file-type-badge').text(res.data.file_type_name || fileType.toUpperCase());
+              if (fileTypeColors[fileType]) {                                        
+                $('#file-type-badge').css('background-color', fileTypeColors[fileType]);
+              }                                                                      
+                                                                                 
+              layer.msg('上传成功', {icon: 6});                                      
+          } else {                                                                 
+              layer.msg(res.msg || '上传失败', {icon: 5});                           
+              $('#upload-progress').hide();                                          
+          }                                                                        
+        },
+        error: function(){
+            layer.msg('上传失败，请重试', {icon: 5});
+            $('#upload-progress').hide();
+        }
+      });
+
+      $('#remove-file').on('click', function(){
+          $('#upload-result').hide();
+          $('#file-url-hidden').val('');
+          $('#file-name-hidden').val('');
+          layer.msg('已移除文件', {icon: 6});
+      });
+
+      var wangEditor = window.wangEditor;
+      var E = wangEditor;
+      var editor = E.createEditor({
+        selector: '#wang-editor-content',
+        html: '<%= @book.content_description.blank? ? "" : @book.content_description.html_safe %>',
+        onChange: (editor) => {
+          const html = editor.getHtml()
+          this.textareaTarget.value = html
+        },
+        config: {
+          placeholder: '请输入内容简介...',
+          MENU_CONF: {
+            uploadImage: {
+              server: '<%= upload_open_img_files_path %>',
+              fieldName: 'file',
+              maxFileSize: 5 * 1024 * 1024,
+              headers: {
+                'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+              },
+              customInsert(res, insertFn) {
+                if (res.errno === 0 || res.success) {
+                  var url = res.url || (res.data && res.data[0] && res.data[0].url);
+                  if (url) {
+                    insertFn(url, res.name || '', url);
+                  }
+                } else {
+                  layer.msg(res.message || '上传失败', { icon: 2 });
+                }
+              }
+            }
+          }
+        }
+    });                                                                          
+    //editor.setHtml('<%= j @book.content_description.to_s %>');  
+
+    var toolbar = E.createToolbar({                                              
+      editor: editor,                                                            
+      selector: '#wang-editor-toolbar',                                          
+      config: {                                                                  
+        excludeKeys: [                                                           
+          'group-video',                                                         
+          'todo',                                                                
+          'emotion',                                                             
+          'codeBlock',                                                           
+          'insertTable',                                                         
+          'undo',                                                                
+          'redo'                                                                 
+        ]                                                                        
+      }                                                                          
+    }); 
+
+    form.on('submit(submit-content)', function(data){
+      $('#content-description-hidden').val(editor.getHtml());
+
+      return true;
+    });
+
+  })
+</script>

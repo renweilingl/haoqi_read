@@ -1,0 +1,179 @@
+<% content_for :title, "供应商详情" %>
+
+<div class="page-header">
+  <h1 class="page-title">供应商详情</h1>
+  <div class="page-actions">
+    <%= link_to admin_suppliers_path, class: "layui-btn layui-btn-primary" do %>
+      <i class="layui-icon layui-icon-return"></i>
+      返回列表
+    <% end %>
+    <%= link_to edit_admin_supplier_path(@supplier), class: "layui-btn layui-btn-warm" do %>
+      <i class="layui-icon layui-icon-edit"></i>
+      编辑
+    <% end %>
+    <% if @supplier.active? %>
+      <%= link_to toggle_status_admin_supplier_path(@supplier), method: :post, class: "layui-btn layui-btn-danger", data: { confirm: '确定要禁用此供应商吗？' } do %>
+        <i class="layui-icon layui-icon-close-fill"></i>
+        禁用
+      <% end %>
+    <% else %>
+      <%= link_to toggle_status_admin_supplier_path(@supplier), method: :post, class: "layui-btn layui-btn-normal" do %>
+        <i class="layui-icon layui-icon-ok-circle"></i>
+        启用
+      <% end %>
+    <% end %>
+  </div>
+</div>
+
+<div class="layui-row layui-col-space15">
+  <!-- 基本信息卡片 -->
+  <div class="layui-col-md6">
+    <div class="layui-card">
+      <div class="layui-card-header">
+        <i class="layui-icon layui-icon-user"></i>
+        基本信息
+      </div>
+      <div class="layui-card-body">
+        <table class="layui-table layui-table-view" style="margin: 0;">
+          <tr>
+            <td class="info-label">供应商ID</td>
+            <td><%= @supplier.id %></td>
+          </tr>
+          <tr>
+            <td class="info-label">供应商名称</td>
+            <td><strong><%= @supplier.name %></strong></td>
+          </tr>
+          <tr>
+            <td class="info-label">描述</td>
+            <td><%= @supplier.description.presence || '-' %></td>
+          </tr>
+          <tr>
+            <td class="info-label">状态</td>
+            <td>
+              <span class="layui-badge <%= @supplier.active? ? 'layui-bg-green' : 'layui-bg-gray' %>">
+                <%= @supplier.status_name %>
+              </span>
+            </td>
+          </tr>
+          <tr>
+            <td class="info-label">创建时间</td>
+            <td><%= @supplier.created_at.strftime("%Y-%m-%d %H:%M") %></td>
+          </tr>
+          <tr>
+            <td class="info-label">更新时间</td>
+            <td><%= @supplier.updated_at.strftime("%Y-%m-%d %H:%M") %></td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 联系方式卡片 -->
+  <div class="layui-col-md6">
+    <div class="layui-card">
+      <div class="layui-card-header">
+        <i class="layui-icon layui-icon-cellphone"></i>
+        联系方式
+      </div>
+      <div class="layui-card-body">
+        <table class="layui-table layui-table-view" style="margin: 0;">
+          <tr>
+            <td class="info-label">联系人</td>
+            <td><%= @supplier.contact_person.presence || '-' %></td>
+          </tr>
+          <tr>
+            <td class="info-label">联系电话</td>
+            <td>
+              <% if @supplier.contact_phone.present? %>
+                <a href="tel:<%= @supplier.contact_phone %>" style="color: #52c41a;">
+                  <i class="layui-icon layui-icon-cellphone"></i>
+                  <%= @supplier.contact_phone %>
+                </a>
+              <% else %>
+                -
+              <% end %>
+            </td>
+          </tr>
+          <tr>
+            <td class="info-label">联系邮箱</td>
+            <td>
+              <% if @supplier.contact_email.present? %>
+                <a href="mailto:<%= @supplier.contact_email %>" style="color: #52c41a;">
+                  <i class="layui-icon layui-icon-survey"></i>
+                  <%= @supplier.contact_email %>
+                </a>
+              <% else %>
+                -
+              <% end %>
+            </td>
+          </tr>
+          <tr>
+            <td class="info-label">地址</td>
+            <td><%= @supplier.address.presence || '-' %></td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 操作日志 -->
+<div class="layui-card" style="margin-top: 15px;">
+  <div class="layui-card-header">
+    <i class="layui-icon layui-icon-time"></i>
+    操作记录
+  </div>
+  <div class="layui-card-body">
+    <table class="layui-table" style="margin: 0;">
+      <colgroup>
+        <col width="180">
+        <col width="150">
+        <col>
+      </colgroup>
+      <thead>
+        <tr>
+          <th>时间</th>
+          <th>操作类型</th>
+          <th>说明</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><%= @supplier.created_at.strftime("%Y-%m-%d %H:%M:%S") %></td>
+          <td><span class="layui-badge layui-bg-green">创建</span></td>
+          <td>创建供应商 "<%= @supplier.name %>"</td>
+        </tr>
+        <% if @supplier.updated_at > @supplier.created_at %>
+          <tr>
+            <td><%= @supplier.updated_at.strftime("%Y-%m-%d %H:%M:%S") %></td>
+            <td><span class="layui-badge layui-bg-orange">更新</span></td>
+            <td>更新供应商信息</td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<style>
+  .info-label {
+    width: 100px;
+    background-color: #f5f7fa;
+    font-weight: 500;
+  }
+
+  .layui-table-view {
+    border: none;
+  }
+
+  .layui-table-view td,
+  .layui-table-view th {
+    padding: 12px 15px;
+    border: none;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .layui-table-view tr:last-child td {
+    border-bottom: none;
+  }
+</style>

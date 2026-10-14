@@ -1,0 +1,488 @@
+<% content_for :title, "图书详情" %>
+
+<div class="page-header">
+  <h1 class="page-title">图书详情</h1>
+  <div class="page-actions">
+    <%= link_to admin_picture_books_path, class: "layui-btn layui-btn-primary" do %>
+      <i class="layui-icon layui-icon-return"></i> 返回列表
+    <% end %>
+    <%= link_to toggle_lock_admin_book_path(@book), method: :post, class: "layui-btn #{@book.locked? ? 'layui-btn-primary' : 'layui-btn-danger'}" do %>
+      <i class="layui-icon layui-icon-password"></i> <%= @book.locked? ? '解锁' : '锁定' %>
+    <% end %>
+    <% unless @book.locked? %>
+      <%= link_to admin_book_path(@book), method: :delete, class: "layui-btn layui-btn-danger", data: { confirm: '确定要删除此图书吗？' } do %>
+        <i class="layui-icon layui-icon-delete"></i> 删除
+      <% end %>
+    <% end %>
+  </div>
+</div>
+
+<!-- 锁定提示 -->
+<% if @book.locked? %>
+<div class="layui-alert" style="background: #fff2e8; border: 1px solid #ffbb76; margin-bottom: 15px;">
+  <i class="layui-icon layui-icon-tips"></i> 此图书已锁定，无法进行编辑、删除操作。如需修改，请先解锁。
+</div>
+<% end %>
+
+<!-- 状态概览 -->
+<div class="layui-row layui-col-space15" style="margin-bottom: 20px;">
+  <div class="layui-col-md2">
+    <div class="status-card" style="background: linear-gradient(135deg, <%= case @book.status when 'published' then '#52c41a' when 'draft' then '#faad14' else '#8c8c8c' end %>, <%= case @book.status when 'published' then '#389e0d' when 'draft' then '#d48806' else '#595959' end %>); border-radius: 8px; padding: 20px; color: white; text-align: center;">
+      <div style="font-size: 28px; font-weight: bold;"><%= @book.status_name %></div>
+      <div style="opacity: 0.9; font-size: 14px; margin-top: 5px;">当前状态</div>
+    </div>
+  </div>
+  <div class="layui-col-md2">
+    <div class="status-card" style="background: #f5f7fa; border-radius: 8px; padding: 20px; text-align: center;">
+      <% if @book.cover_image_url.present? %>
+        <img src="<%= @book.cover_image_url %>" style="width: 60px; height: 80px; object-fit: cover; border-radius: 4px;">
+      <% else %>
+        <div style="width: 60px; height: 80px; background: #e6e6e6; border-radius: 4px; display: flex; align-items: center; justify-content: center;">
+          <i class="layui-icon layui-icon-picture" style="font-size: 24px; color: #999;"></i>
+        </div>
+      <% end %>
+    </div>
+  </div>
+  <div class="layui-col-md2">
+    <div class="status-card" style="background: #f5f7fa; border-radius: 8px; padding: 20px; text-align: center;">
+      <div style="font-size: 24px; font-weight: bold; color: #333;"><%= @book.page_count %></div>
+      <div style="color: #666; font-size: 14px; margin-top: 5px;">总页数</div>
+    </div>
+  </div>
+  <div class="layui-col-md2">
+    <div class="status-card" style="background: #f5f7fa; border-radius: 8px; padding: 20px; text-align: center;">
+      <div style="font-size: 24px; font-weight: bold; color: #333;"><%= @book.view_count %></div>
+      <div style="color: #666; font-size: 14px; margin-top: 5px;">浏览次数</div>
+    </div>
+  </div>
+  <div class="layui-col-md2">
+    <div class="status-card" style="background: #f5f7fa; border-radius: 8px; padding: 20px; text-align: center;">
+      <div style="font-size: 24px; font-weight: bold; color: #52c41a;">
+        <i class="layui-icon layui-icon-rate"></i> <%= @book.base_rating %>
+      </div>
+      <div style="color: #666; font-size: 14px; margin-top: 5px;">基础评分</div>
+    </div>
+  </div>
+  <div class="layui-col-md2">
+    <div class="status-card" style="background: <%= @book.locked? ? '#fff1f0' : '#f6ffed' %>; border-radius: 8px; padding: 20px; text-align: center;">
+      <div style="font-size: 24px; font-weight: bold; color: <%= @book.locked? ? '#ff4d4f' : '#52c41a' %>;">
+        <i class="layui-icon layui-icon-password"></i> <%= @book.locked? ? '已锁定' : '未锁定' %>
+      </div>
+      <div style="color: #666; font-size: 14px; margin-top: 5px;">锁定状态</div>
+    </div>
+  </div>
+</div>
+
+<div class="layui-row layui-col-space15">
+  <!-- 核心基础信息 -->
+  <div class="layui-col-md6">
+    <div class="layui-card">
+      <div class="layui-card-header">
+        <i class="layui-icon layui-icon-note"></i> 核心基础信息
+      </div>
+      <div class="layui-card-body">
+        <table class="layui-table layui-table-view" style="margin: 0;">
+          <tr>
+            <td class="info-label" style="width: 100px;">图书ID</td>
+            <td><%= @book.id %></td>
+          </tr>
+          <tr>
+            <td class="info-label">图书名称</td>
+            <td><strong style="font-size: 16px;"><%= @book.name %></strong></td>
+          </tr>
+          <tr>
+            <td class="info-label">图书类型</td>
+            <td>
+              <span class="layui-badge layui-bg-gray"><%= @book.book_type_name %></span>
+            </td>
+          </tr>
+          <tr>
+            <td class="info-label">年龄范围</td>
+            <td><%= @book.min_age %> - <%= @book.max_age %> 岁</td>
+          </tr>
+          <tr>
+            <td class="info-label">最佳推荐</td>
+            <td><%= @book.recommended_age %></td>
+          </tr>
+          <tr>
+            <td class="info-label">归属供应商</td>
+            <td><%= @book.supplier&.name || '-' %></td>
+          </tr>
+          <tr>
+            <td class="info-label">分类</td>
+            <td>
+              <% @book.categories_array.each do |cat| %>
+                <span class="layui-badge" style="margin: 2px;"><%= cat %></span>
+              <% end %>
+            </td>
+          </tr>
+          <tr>
+            <td class="info-label">主题</td>
+            <td>
+              <% @book.themes_array.each do |theme| %>
+                <span class="layui-badge layui-bg-green" style="margin: 2px;"><%= @book.themes_names.split(',').find { |n| n.include?(Book::THEME_NAMES[theme.to_sym]) } || theme %></span>
+              <% end %>
+            </td>
+          </tr>
+          <tr>
+            <td class="info-label">创建时间</td>
+            <td><%= @book.created_at.strftime("%Y-%m-%d %H:%M") %></td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 版权与出版信息 -->
+  <div class="layui-col-md6">
+    <div class="layui-card">
+      <div class="layui-card-header">
+        <i class="layui-icon layui-icon-rmb"></i> 版权与出版信息
+      </div>
+      <div class="layui-card-body">
+        <table class="layui-table layui-table-view" style="margin: 0;">
+          <tr>
+            <td class="info-label" style="width: 100px;">是否有版权</td>
+            <td>
+              <span class="layui-badge <%= @book.has_copyright? ? 'layui-bg-green' : 'layui-bg-gray' %>">
+                <%= @book.has_copyright? ? '是' : '否' %>
+              </span>
+            </td>
+          </tr>
+          <tr>
+            <td class="info-label">付费类型</td>
+            <td>
+              <span class="layui-badge <%= @book.free? ? 'layui-bg-green' : (@book.vip? ? 'layui-bg-purple' : 'layui-bg-red') %>">
+                <%= @book.payment_type_name %>
+              </span>
+            </td>
+          </tr>
+          <tr>
+            <td class="info-label">单价</td>
+            <td><%= @book.price > 0 ? "¥#{@book.price}" : '免费' %></td>
+          </tr>
+          <tr>
+            <td class="info-label">版权时间</td>
+            <td><%= @book.copyright_period %></td>
+          </tr>
+          <tr>
+            <td class="info-label">ISBN号</td>
+            <td><%= @book.isbn.presence || '-' %></td>
+          </tr>
+          <tr>
+            <td class="info-label">出版社</td>
+            <td><%= @book.publisher.presence || '-' %></td>
+          </tr>
+          <tr>
+            <td class="info-label">是否存在ISBN</td>
+            <td>
+              <span class="layui-badge <%= @book.has_isbn? ? 'layui-bg-green' : 'layui-bg-gray' %>">
+                <%= @book.has_isbn? ? '是' : '否' %>
+              </span>
+            </td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="layui-row layui-col-space15" style="margin-top: 15px;">
+  <!-- 合辑与关联属性 -->
+  <div class="layui-col-md6">
+    <div class="layui-card">
+      <div class="layui-card-header">
+        <i class="layui-icon layui-icon-link"></i> 合辑与关联属性
+      </div>
+      <div class="layui-card-body">
+        <table class="layui-table layui-table-view" style="margin: 0;">
+          <tr>
+            <td class="info-label" style="width: 100px;">归属合辑</td>
+            <td>
+              <% if @book.collections_array.any? %>
+                <% @book.collections_array.each do |col| %>
+                  <span class="layui-badge layui-bg-blue" style="margin: 2px;"><%= col %></span>
+                <% end %>
+              <% else %>
+                -
+              <% end %>
+            </td>
+          </tr>
+          <tr>
+            <td class="info-label">是否引用所属主</td>
+            <td>
+              <span class="layui-badge <%= @book.quote_current_owner? ? 'layui-bg-green' : 'layui-bg-gray' %>">
+                <%= @book.quote_current_owner? ? '是' : '否' %>
+              </span>
+            </td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 作者/译者信息 -->
+  <div class="layui-col-md6">
+    <div class="layui-card">
+      <div class="layui-card-header">
+        <i class="layui-icon layui-icon-user"></i> 作者/译者信息
+      </div>
+      <div class="layui-card-body">
+        <table class="layui-table layui-table-view" style="margin: 0;">
+          <tr>
+            <td class="info-label" style="width: 100px;">作者</td>
+            <td><%= @book.author.presence || '-' %></td>
+          </tr>
+          <tr>
+            <td class="info-label">译者</td>
+            <td><%= @book.translator.presence || '-' %></td>
+          </tr>
+          <tr>
+            <td class="info-label">编著</td>
+            <td><%= @book.compiler.presence || '-' %></td>
+          </tr>
+          <tr>
+            <td class="info-label">编绘</td>
+            <td><%= @book.illustrator.presence || '-' %></td>
+          </tr>
+          <tr>
+            <td class="info-label">主编</td>
+            <td><%= @book.editor_in_chief.presence || '-' %></td>
+          </tr>
+          <tr>
+            <td class="info-label">关联奖项</td>
+            <td>
+              <% if @book.awards_array.any? %>
+                <% @book.awards_array.each do |award| %>
+                  <span class="layui-badge layui-bg-orange" style="margin: 2px;"><%= award %></span>
+                <% end %>
+              <% else %>
+                -
+              <% end %>
+            </td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="layui-row layui-col-space15" style="margin-top: 15px;">
+  <!-- 内容与展示信息 -->
+  <div class="layui-col-md12">
+    <div class="layui-card">
+      <div class="layui-card-header">
+        <i class="layui-icon layui-icon-picture"></i> 内容与展示信息
+      </div>
+      <div class="layui-card-body">
+        <div class="layui-row">
+          <div class="layui-col-md3">
+            <table class="layui-table" style="margin: 0;">
+              <tr>
+                <td class="info-label">图片简介</td>
+                <td>
+                  <% if @book.intro_image_url.present? %>
+                    <img src="<%= @book.intro_image_url %>" style="max-width: 100px; max-height: 140px; border-radius: 4px;">
+                  <% else %>
+                    -
+                  <% end %>
+                </td>
+              </tr>
+              <tr>
+                <td class="info-label">横屏/竖屏</td>
+                <td><%= @book.orientation_name %></td>
+              </tr>
+              <tr>
+                <td class="info-label">是否可购买</td>
+                <td>
+                  <span class="layui-badge <%= @book.purchasable? ? 'layui-bg-green' : 'layui-bg-gray' %>">
+                    <%= @book.purchasable? ? '是' : '否' %>
+                  </span>
+                </td>
+              </tr>
+            </table>
+          </div>
+          <div class="layui-col-md3">
+            <table class="layui-table" style="margin: 0;">
+              <tr>
+                <td class="info-label">页数</td>
+                <td><%= @book.page_count %> 页</td>
+              </tr>
+              <tr>
+                <td class="info-label">字数</td>
+                <td><%= @book.word_count %> 字</td>
+              </tr>
+              <tr>
+                <td class="info-label">整本试读</td>
+                <td>
+                  <span class="layui-badge <%= @book.full_trial_read? ? 'layui-bg-green' : 'layui-bg-gray' %>">
+                    <%= @book.full_trial_read? ? '是' : '否' %>
+                  </span>
+                </td>
+              </tr>
+            </table>
+          </div>
+          <div class="layui-col-md3">
+            <table class="layui-table" style="margin: 0;">
+              <tr>
+                <td class="info-label">编辑推荐语</td>
+                <td><%= @book.editor_recommendation.presence || '-' %></td>
+              </tr>
+              <tr>
+                <td class="info-label">详情页推荐语</td>
+                <td><%= @book.detail_recommendation.presence || '-' %></td>
+              </tr>
+            </table>
+          </div>
+        </div>
+        <% if @book.description.present? %>
+          <div class="layui-form-item" style="margin-top: 15px;">
+            <label class="layui-form-label" style="width: 100px;">内容简介</label>
+            <div class="layui-input-block">
+              <div style="padding: 10px; background: #f5f7fa; border-radius: 4px; line-height: 1.8;">
+                <%= @book.description %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+        <% if @book.remark.present? %>
+          <div class="layui-form-item" style="margin-top: 15px;">
+            <label class="layui-form-label" style="width: 100px;">备注</label>
+            <div class="layui-input-block">
+              <div style="padding: 10px; background: #fffbe6; border-radius: 4px; color: #ad6800;">
+                <%= @book.remark %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 标签系统 -->
+<div class="layui-card" style="margin-top: 15px;">
+  <div class="layui-card-header">
+    <i class="layui-icon layui-icon-tag"></i> 标签系统
+  </div>
+  <div class="layui-card-body">
+    <div class="layui-row">
+      <div class="layui-col-md6">
+        <table class="layui-table" style="margin: 0;">
+          <tr>
+            <td class="info-label" style="width: 100px;">一级标签</td>
+            <td>
+              <% if @book.level_one_tags_array.any? %>
+                <% @book.level_one_tags_array.each do |tag| %>
+                  <span class="layui-badge layui-bg-blue" style="margin: 2px;"><%= tag %></span>
+                <% end %>
+              <% else %>
+                -
+              <% end %>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div class="layui-col-md6">
+        <table class="layui-table" style="margin: 0;">
+          <tr>
+            <td class="info-label" style="width: 100px;">二级标签</td>
+            <td>
+              <% if @book.level_two_tags_array.any? %>
+                <% @book.level_two_tags_array.each do |tag| %>
+                  <span class="layui-badge" style="margin: 2px;"><%= tag %></span>
+                <% end %>
+              <% else %>
+                -
+              <% end %>
+            </td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 操作日志 -->
+<div class="layui-card" style="margin-top: 15px;">
+  <div class="layui-card-header">
+    <i class="layui-icon layui-icon-time"></i> 操作记录
+  </div>
+  <div class="layui-card-body">
+    <table class="layui-table">
+      <colgroup>
+        <col width="180">
+        <col width="120">
+        <col>
+      </colgroup>
+      <thead>
+        <tr>
+          <th>时间</th>
+          <th>操作类型</th>
+          <th>说明</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><%= @book.created_at.strftime("%Y-%m-%d %H:%M:%S") %></td>
+          <td><span class="layui-badge layui-bg-green">创建</span></td>
+          <td>创建图书 "<%= @book.name %>"</td>
+        </tr>
+        <% if @book.updated_at > @book.created_at %>
+          <tr>
+            <td><%= @book.updated_at.strftime("%Y-%m-%d %H:%M:%S") %></td>
+            <td><span class="layui-badge layui-bg-orange">更新</span></td>
+            <td>更新图书信息</td>
+          </tr>
+        <% end %>
+        <% if @book.approved_at.present? %>
+          <tr>
+            <td><%= @book.approved_at.strftime("%Y-%m-%d %H:%M:%S") %></td>
+            <td><span class="layui-badge layui-bg-blue">审核</span></td>
+            <td>审核通过 by <%= @book.approved_by&.name || '系统' %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<style>
+  .info-label {
+    width: 100px;
+    background-color: #f5f7fa;
+    font-weight: 500;
+  }
+
+  .layui-table-view {
+    border: none;
+  }
+
+  .layui-table-view td,
+  .layui-table-view th {
+    padding: 12px 15px;
+    border: none;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .layui-table-view tr:last-child td {
+    border-bottom: none;
+  }
+
+  .layui-badge-purple {
+    background-color: #722ed1;
+  }
+
+  .status-card {
+    transition: transform 0.2s;
+  }
+
+  .status-card:hover {
+    transform: translateY(-2px);
+  }
+
+  .layui-alert {
+    padding: 12px 20px;
+    border-radius: 4px;
+  }
+</style>

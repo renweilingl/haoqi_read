@@ -1,0 +1,3 @@
+<% @category.category_subs.each do |cat| %>          
+   <input type="checkbox" name="book[category_sub_ids][]" value=<%= cat.id %> title="<%= cat.name %>"/>
+<% end %> 

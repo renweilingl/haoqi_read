@@ -1,0 +1,122 @@
+<div class="layui-tab">
+  <div class="x-nav">
+    <span class="layui-breadcrumb">
+      <a href="<%= admin_grades_path %>">年级管理</a>
+      <%= link_to @grade.name, admin_grade_recommends_path(@grade) %>
+      <a><cite>推荐内容管理</cite></a>
+    </span>
+    <%= render 'common/user_info' %>
+  </div>
+  <div class="x-body">
+    <div class="layui-form" style="margin-bottom: 15px;">
+      <div class="layui-form-item" style="margin: 0;">
+        <div class="layui-inline">
+          <a class="layui-btn layui-bg-blue" href="<%= new_admin_grade_recommend_path(@grade) %>">
+            <i class="layui-icon layui-icon-add-1"></i> 新增推荐
+          </a>
+          <a class="layui-btn layui-btn-primary" href="<%= admin_grades_path %>">
+            <i class="layui-icon layui-icon-return"></i> 返回年级
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <table class="layui-table">
+      <thead>
+        <tr>
+          <th width="220">名称</th>
+          <th width="80" style="text-align:center;">状态</th>
+          <th width="60">排序</th>
+          <th width="80">文字颜色</th>
+          <th>分组内容</th>
+          <th width="160">创建时间</th>
+          <th width="220" style="text-align:center;">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @recommends.each do |r| %>
+          <tr>
+            <td><%= r.name %></td>
+            <td style="text-align:center;">
+              <% if r.status? %>
+                <span class="layui-badge layui-bg-green">首页显示</span>
+              <% else %>
+                <span class="layui-badge">首页隐藏</span>
+              <% end %>
+            </td>
+            <td><%= r.sn %></td>
+            <td>
+              <div style="background: <%= r.color %>; width: 32px; height: 24px; margin-right: 10px;"></div>
+            </td>
+            <td><%= r.content_groups.pluck(:name).join(" | ") %></td>
+            <td><%= r.created_at.strftime('%Y-%m-%d') %></td>
+            <td>
+              <div class="layui-btn-group">
+                <%= link_to '分组管理', admin_grade_recommend_content_groups_path(@grade, r), class: "layui-btn layui-btn-sm layui-bg-blue" %>
+                <%= link_to '编辑', edit_admin_grade_recommend_path(@grade, r), class: "layui-btn layui-btn-sm" %>
+                <a href="<%= toggle_status_admin_grade_recommend_path(@grade, r) %>" class="layui-btn layui-btn-sm <%= r.status? ? 'layui-btn-danger' : '' %>" data-method="post" style="margin-left: 0;">
+                  <%= r.status? ? '隐藏' : '显示' %>
+                </a>
+                <%= link_to '删除', admin_grade_recommend_path(@grade, r), method: :delete, class: "layui-btn layui-btn-sm layui-btn-danger", title: "删除", data: { confirm: "确定要删除此内容吗？此操作不可恢复。" } %>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+layui.use(['layer'], function(){
+  var layer = layui.layer;
+  var $ = layui.$;
+
+  // 状态切换
+  $(document).on('click', 'a[data-method="post"]', function(e){
+    e.preventDefault();
+    var url = $(this).attr('href');
+
+    layer.confirm('确定要执行此操作吗？', function(index){
+      $.ajax({
+        url: url,
+        type: 'POST',
+        success: function(res){
+          if (res.success || res.notice) {
+            layer.msg(res.notice || '操作成功', {icon: 1}, function(){
+              window.location.reload();
+            });
+          } else {
+            layer.msg(res.error || '操作失败', {icon: 2});
+          }
+        }
+      });
+      layer.close(index);
+    });
+  });
+
+  // 删除确认
+  $(document).on('click', 'a[data-method="delete"]', function(e){
+    e.preventDefault();
+    var url = $(this).attr('href');
+    var confirmMsg = $(this).data('confirm') || '确定要删除吗？';
+
+    layer.confirm(confirmMsg, function(index){
+      $.ajax({
+        url: url,
+        type: 'DELETE',
+        success: function(res){
+          if (res.success || res.notice) {
+            layer.msg(res.notice || '删除成功', {icon: 1}, function(){
+              window.location.reload();
+            });
+          } else {
+            layer.msg(res.error || '删除失败', {icon: 2});
+          }
+        }
+      });
+      layer.close(index);
+    });
+  });
+});
+</script>

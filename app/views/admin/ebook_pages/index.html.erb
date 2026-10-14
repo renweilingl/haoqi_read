@@ -1,0 +1,99 @@
+<div class="layui-tab">
+  <div class="x-nav">
+    <span class="layui-breadcrumb">
+      <%= link_to "图书漫画", :admin_picture_books %>
+      <a><cite><%= @book.name %></cite></a>
+      <a><cite>章节管理</cite></a>
+    </span>
+    <%= render 'common/user_info' %>
+  </div>
+  <div class="x-body">
+    <div class="xblock">
+      <button class="layui-btn layui-bg-blue layui-btn-sm" onclick="batchFree();">批量免费 </button>
+      <button class="layui-btn layui-bg-blue layui-btn-sm" onclick="batchunFree();">批量付费 </button>
+    </div>
+
+    <table class="layui-table" id="main-table"></table>
+  </div>
+</div>
+
+<script>
+    layui.use(['table'],function(){
+      var table = layui.table;
+      table.render({
+        elem: '#main-table',
+        url: '<%= admin_picture_book_ebook_pages_path(@book) %>',
+        page: {
+          layout: ['count', 'prev', 'page', 'next', 'limit', 'skip'],
+          groups: 10,
+          limit: 50,
+          theme: '#1E9FFF',
+          first: '首页',
+          last: '尾页',
+          prev: '<em>←</em>',
+          next: '<em>→</em>',
+        },
+        cols: [[
+          {type: 'checkbox', data: 'id'},
+          {field: 'id', title: 'ID', hide: true},
+          {field: 'page_number', title: '页码', sort: true, width: 100},
+          {field: 'is_free', title: '付费类型', align: "center", minWidth: 150, templet: function(d){
+              if(d.is_free == true){
+                return '<span class="layui-badge layui-bg-green">免费</span>';
+              } else {
+                return '<span class="layui-badge layui-bg-gray">付费</span>';
+              }
+            }
+          },
+        ]],
+      });
+    })
+
+    function get_ids() {
+        var table = layui.table;
+        let ctrCheckArr = [];
+        ctrCheckArr.length = 0;
+        let checkStatus = table.checkStatus('main-table'),
+            data = checkStatus.data; //获取选中的数据
+        for (let i = 0; i < data.length; i++) {
+            ctrCheckArr.push(data[i].id)
+        }
+        return ctrCheckArr;
+    }
+
+    function batchFree() {
+        var ids = get_ids();
+
+        $.ajax({
+          url: '<%= batch_free_admin_picture_book_ebook_pages_path(@book) %>',
+          dataType: 'json',
+          type: 'post',
+          data: {ids: ids},
+          success: function(res) {
+            if(res.code == 0){
+              window.location.reload();
+            } else {
+              layer.msg('修改失败');
+            }
+          }
+        })
+    }
+
+    function batchunFree() {
+        var ids = get_ids();
+
+        $.ajax({
+          url: '<%= batch_unfree_admin_picture_book_ebook_pages_path(@book) %>',
+          dataType: 'json',
+          type: 'post',
+          data: {ids: ids},
+          success: function(res) {
+            if(res.code == 0){
+              window.location.reload();
+            } else {
+              layer.msg('修改失败');
+            }
+          }
+        })
+    }
+</script>

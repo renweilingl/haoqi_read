@@ -1,0 +1,35 @@
+<%= form_for(@rank, url: @rank.new_record? ? :grade_ranks : :grade_rank,method: @rank.new_record? ? :post : :put, :html => {:class => "layui-form"}) do |f| %>
+  <div class="layui-form-item">
+    <%= f.label :lan_type, class: "layui-form-label" do %>
+      <span class="required">*</span> 类型 
+    <% end %>
+    <div class="layui-input-block">
+      <% Category.where(name: ["图书", "有声", "漫画"]).each do |x| %>
+        <input type="radio" lay-filter="levelFilter" name="rank[category_id]" value=<%= x.id %> title="<%= x.name %>" <%= 'checked' if @rank.category_id == x.id %> <%= 'disabled' unless @rank.new_record? %>>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <label class="layui-form-label"><span class="required">*</span>名称</label>
+    <div class="layui-input-block">
+    <%= f.text_field :name, class: "layui-input", placeholder: "请输入排行名称", lay_verify: "required", lay_reqtext: "排行名称不能为空" %>
+    </div>
+  </div>
+
+  <div class="layui-form-item layui-col-md6">
+    <label class="layui-form-label"><span class="required">*</span>序号</label>
+    <div class="layui-input-block">
+      <%= f.number_field :sn, class: "layui-input", min: 0, step: 1, required: true %>
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <div class="layui-input-block">
+      <button type="submit" class="layui-btn layui-bg-blue" lay-submit lay-filter="submit-content">
+        <i class="layui-icon layui-icon-release"></i>提交保存
+      </button>
+      <%= link_to "取消",  grade_ranks_path(@grade), class: "layui-btn layui-btn-primary" %>
+    </div>
+  </div>
+<% end %>

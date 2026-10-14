@@ -1,0 +1,60 @@
+<%= form_for(@package, url: @package.new_record? ? :operator_packages : :operator_package,method: @package.new_record? ? :post : :put, :html => {:class => "layui-form"}) do |f| %>
+  <div class="layui-form-item">
+    <%= f.label :name, "名称", class: "layui-form-label" %>
+    <div class="layui-input-block">
+      <%= f.text_field :name, class: "layui-input", placeholder: "请输入套餐名称", lay_verify: "required", lay_reqtext: "名称不能为空" %>
+    </div>
+  </div>
+
+
+  <div class="layui-form-item layui-col-md6">
+    <label class="layui-form-label">原价</label>
+    <div class="layui-input-block">
+      <%= f.number_field :origin_price, class: "layui-input", min: 0, step: "0.01" %>
+    </div>
+  </div>
+
+  <div class="layui-form-item layui-col-md6">
+    <label class="layui-form-label">实际价</label>
+    <div class="layui-input-block">
+      <%= f.number_field :price, class: "layui-input", min: 0, step: "0.01" %>
+    </div>
+  </div>
+
+  <div class="layui-form-item layui-col-md6">
+    <label class="layui-form-label">有效天数</label>
+    <div class="layui-input-block">
+      <%= f.number_field :effective_days, class: "layui-input", min: 1, step: 1 %>
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <label class="layui-form-label">限时折扣</label>
+    <div class="layui-input-block">
+      <%= f.radio_button :is_discount, true, title: "是" %>
+      <%= f.radio_button :is_discount, false, title: "否" %>
+    </div>
+  </div>
+
+  <div class="layui-form-item layui-col-md6">
+    <label class="layui-form-label">折扣标签</label>
+    <div class="layui-input-block">
+      <%= f.text_field :discount_tag, class: "layui-input", maxlength: 5 %>
+    </div>
+  </div>
+
+  <div class="layui-form-item layui-col-md6">
+    <label class="layui-form-label">序号</label>
+    <div class="layui-input-block">
+      <%= f.number_field :sn, class: "layui-input", min: 0, step: 1 %>
+    </div>
+  </div>
+
+
+  <div class="layui-form-item">
+    <div class="layui-input-block">
+      <button class="layui-btn layui-bg-blue" lay-submit lay-filter="component-form-element">立即提交</button>
+      <%= link_to "取消", :operator_packages, class: "layui-btn layui-btn-primary" %>
+    </div>
+  </div>
+<% end %>

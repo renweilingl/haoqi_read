@@ -1,0 +1,28 @@
+<div class="crop-modal-overlay" id="bannerCropModal">
+  <div class="crop-modal-header">
+    <span class="crop-modal-title">裁剪Banner图片</span>
+    <span class="crop-modal-close" onclick="closeBannerCropModal()">×</span>
+  </div>
+  <div class="crop-ratio-bar">
+    <span class="crop-ratio-label">裁剪比例：</span>
+    <div class="crop-ratio-btns">
+      <button class="crop-ratio-btn active" data-ratio="2:1">2:1</button>
+    </div>
+    <span class="crop-size-tip">可拖动四角调整裁剪大小 - <span id="cropPixelSize">0 x 0</span> px</span>
+  </div>
+  <div class="crop-modal-body">
+    <div class="crop-canvas-wrapper" id="cropCanvasWrapper">
+      <canvas id="cropCanvas"></canvas>
+      <div class="crop-box" id="cropBox">
+        <div class="crop-corner top-left"></div>
+        <div class="crop-corner top-right"></div>
+        <div class="crop-corner bottom-left"></div>
+        <div class="crop-corner bottom-right"></div>
+      </div>
+    </div>
+  </div>
+  <div class="crop-modal-footer">
+    <button class="crop-btn crop-btn-cancel" onclick="closeBannerCropModal()">取消</button>
+    <button class="crop-btn crop-btn-confirm" onclick="confirmBannerCrop()">确认裁剪并上传</button>
+  </div>
+</div>

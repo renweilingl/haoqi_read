@@ -1,0 +1,46 @@
+<%= form_for(@recommend, url: @recommend.new_record? ? :admin_grade_recommends : :admin_grade_recommend,method: @recommend.new_record? ? :post : :put, :html => {:class => "layui-form"}) do |f| %>
+  <div class="layui-form-item">
+    <%= f.label :name, class: "layui-form-label" do %>
+      <span class="required">*</span> 推荐名称
+    <% end %>
+    <div class="layui-input-block">
+      <%= f.text_field :name, class: "layui-input", placeholder: "请输入推荐名称", maxlength: 10, required: true  %>
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <%= f.label :name, class: "layui-form-label" do %>
+      <span class="required">*</span> 文字颜色 
+    <% end %>
+    <div class="layui-input-block">
+      <% ["#FF7300", "#FFBB00", "#318ACE", "#F53790", "#A337F5", "#5CC77A"].each_with_index do |c, idx| %>
+        <input type="radio" name="recommend[color]" value="<%= c  %>" title="" <%= 'checked' if c == @recommend.color  %>>
+        <div lay-radio style="background: <%= c %>; width: 42px; height: 24px; margin-right: 10px;"></div>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="layui-form-item layui-col-md6">
+    <label class="layui-form-label">序号</label>
+    <div class="layui-input-block">
+      <%= f.number_field :sn, class: "layui-input", min: 0, step: 1, required: true %>
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <label class="layui-form-label">首页显示</label>
+    <div class="layui-input-block">
+      <%= f.radio_button :status, true, title: "显示" %>
+      <%= f.radio_button :status, false, title: "隐藏" %>
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <div class="layui-input-block">
+      <button type="submit" class="layui-btn layui-bg-blue" lay-submit lay-filter="submit-content">
+        <i class="layui-icon layui-icon-release"></i>提交保存
+      </button>
+      <%= link_to "取消", admin_grade_recommends_path(@grade), class: "layui-btn layui-btn-primary" %>
+    </div>
+  </div>
+<% end %>

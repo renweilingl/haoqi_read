@@ -1,0 +1,67 @@
+<div class="layui-tab">                                                          
+  <div class="x-nav">
+    <span class="layui-breadcrumb">                                              
+      <a href="/grades">内容管理</a>
+      <a><cite><%= @grade.name %></cite></a>
+      <a><cite>排行榜</cite></a>
+    </span>
+    <%= render 'common/user_info' %>
+  </div>
+
+  <div class="x-body">
+
+    <div class="layui-row">
+      <div class="layui-col-xs9">
+        <%= search_form_for(@q, url: grade_ranks_path(@grade), :html => {class: :'layui-form layui-col-md12'}) do |f| %>
+          <div class="layui-input-inline" style="width: 140px;">                                                           
+            <%= f.select :category_id_eq, options_for_select(Category.where(name: ["图书","有声", "漫画"]).map { |x| [x.name, x.id] }, @q.category_id_eq), { include_blank: "图书分类" } %>
+          </div> 
+          <div class="layui-input-inline">
+            <%= f.text_field :name_cont, class: :'layui-input', placeholder: "排行榜名称" %>
+          </div>
+          <button class="layui-btn layui-bg-blue" lay-submit lay-filter="demo-table-search"><i class="layui-icon">&#xe615;</i>查询</button>
+          <%= link_to "重置", grade_ranks_path(@grade), class: "layui-btn layui-btn-primary" %>
+        <% end %>
+      </div>
+
+      <div class="layui-col-3 text-right">
+        <a href="<%= new_grade_rank_path(@grade) %>" class="layui-btn layui-btn-normal">
+          <i class="layui-icon layui-icon-add-1"></i> 添加排行榜
+        </a>
+      </div>
+    </div>
+
+    <table class="layui-table">
+      <thead>
+        <tr>
+          <th width="100">分类</th>
+          <th width="100">名称</th>
+          <th width="60">序号</th>
+          <th>内容</th>
+          <th width="120">添加时间</th>
+          <th width="180" style="text-align:center;">操作</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <% @ranks.each do |r| %>
+          <tr>
+            <td><%= r.category.name %></td>
+            <td><%= r.name %></td>
+            <td><%= r.sn %></td>
+            <td><%= r.content_names %></td>
+            <td><%= r.created_at.strftime("%Y-%m-%d") %></td>
+            <td style="text-align:center;">
+              <div class="layui-btn-group">
+                <%= link_to "内容管理", grade_rank_rank_contents_path(@grade, r), class: "layui-btn layui-btn-sm" %>
+                <%= link_to "编辑", edit_grade_rank_path(@grade, r), class: "layui-btn layui-btn-sm" %>
+                <%= link_to '删除', grade_rank_path(@grade, r), method: :delete, class: "layui-btn layui-btn-sm layui-btn-danger", title: "删除", data: { confirm: "确定要删除该排行榜吗？此操作不可恢复。" } %>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+  </div>
+</div>

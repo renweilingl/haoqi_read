@@ -1,0 +1,76 @@
+<div class="layui-tab">
+  <div class="x-nav">
+    <span class="layui-breadcrumb">
+      <a><cite>出版社管理</cite></a>
+    </span>
+    <%= render 'common/user_info' %>
+  </div>
+  <div class="x-body">
+    <div class="layui-row">
+      <div class="layui-col-3 text-right">
+        <%= link_to :new_admin_supplier, class: 'layui-btn layui-bg-blue' do %>
+          <i class="layui-icon"></i>新增出版社
+        <% end %>
+      </div>
+    </div>
+
+    <table class="layui-table">
+      <thead>
+        <tr>
+          <th width="60">ID</th>
+          <th>供应商名称</th>
+          <th width="150">创建时间</th>
+          <th width="200" style="text-align:center;">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @suppliers.each do |supplier| %>
+          <tr>
+            <td><%= supplier.id %></td>
+            <td>
+              <div style="font-weight: 500;"><%= supplier.name %></div>
+            </td>
+            <td><%= supplier.created_at.strftime("%Y-%m-%d") %></td>
+            <td style="text-align:center;">
+              <div class="layui-btn-group">
+                <%#= link_to "详情", admin_supplier_path(supplier), class: "layui-btn layui-btn-sm" %>
+                <%= link_to "编辑", edit_admin_supplier_path(supplier), class: "layui-btn layui-btn-sm" %>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+    <!-- 分页 -->
+    <% if @suppliers.total_pages > 1 %>
+      <div id="pagination" style="margin-top: 20px;"></div>
+    <% end %>
+  </div>
+</div>
+
+<script>
+  layui.use(['laypage', 'form'], function(){
+    var laypage = layui.laypage,
+        form = layui.form;
+
+    // 分页
+    <% if @suppliers.total_pages > 1 %>
+    laypage.render({
+      elem: 'pagination',
+      count: <%= @suppliers.total_entries %>,
+      limit: <%= @suppliers.per_page %>,
+      curr: <%= @suppliers.current_page %>,
+      layout: ['count', 'prev', 'page', 'next', 'limit', 'skip'],
+      jump: function(obj, first){
+        if(!first){
+          var url = new URL(window.location.href);
+          url.searchParams.set('page', obj.curr);
+          url.searchParams.set('per_page', obj.limit);
+          window.location.href = url.toString();
+        }
+      }
+    });
+    <% end %>
+  });
+</script>

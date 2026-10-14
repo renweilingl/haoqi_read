@@ -1,0 +1,373 @@
+<% content_for :title, "首页" %>
+
+<!-- 英雄区域 -->
+<div class="hero-section">
+  <div class="layui-container">
+    <div class="layui-row">
+      <div class="layui-col-md6 layui-col-md-offset3 layui-col-sm8 layui-col-sm-offset2">
+        <div class="hero-content">
+          <h1 class="hero-title">欢迎使用项目管理系统</h1>
+          <p class="hero-subtitle">基于 Ruby on Rails 和 Layui 构建的现代化管理平台</p>
+          <div class="hero-buttons">
+            <% if current_user %>
+              <%= link_to dashboard_path, class: "layui-btn layui-btn-lg layui-btn-green" do %>
+                <i class="layui-icon layui-icon-release"></i>
+                进入系统
+              <% end %>
+            <% else %>
+              <%= link_to login_path, class: "layui-btn layui-btn-lg layui-btn-green" do %>
+                <i class="layui-icon layui-icon-username"></i>
+                立即登录
+              <% end %>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 功能特色 -->
+<div class="features-section">
+  <div class="layui-container">
+    <div class="section-title">
+      <h2>核心功能</h2>
+      <p>强大的功能，简单易用</p>
+    </div>
+
+    <div class="layui-row layui-col-space20">
+      <div class="layui-col-md4 layui-col-sm6">
+        <div class="feature-card">
+          <div class="feature-icon layui-bg-green">
+            <i class="layui-icon layui-icon-user"></i>
+          </div>
+          <h3>账号管理</h3>
+          <p>完善的用户账号管理系统，支持多角色权限控制</p>
+        </div>
+      </div>
+
+      <div class="layui-col-md4 layui-col-sm6">
+        <div class="feature-card">
+          <div class="feature-icon layui-bg-blue">
+            <i class="layui-icon layui-icon-component"></i>
+          </div>
+          <h3>分类管理</h3>
+          <p>灵活的内容分类体系，支持多级分类管理</p>
+        </div>
+      </div>
+
+      <div class="layui-col-md4 layui-col-sm6">
+        <div class="feature-card">
+          <div class="feature-icon layui-bg-orange">
+            <i class="layui-icon layui-icon-set"></i>
+          </div>
+          <h3>权限控制</h3>
+          <p>精细化的权限管理系统，确保数据安全</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 技术栈 -->
+<div class="tech-section">
+  <div class="layui-container">
+    <div class="section-title">
+      <h2>技术栈</h2>
+      <p>采用现代化的技术栈构建</p>
+    </div>
+
+    <div class="layui-row layui-col-space20">
+      <div class="layui-col-md3 layui-col-sm6">
+        <div class="tech-card">
+          <div class="tech-icon">
+            <i class="layui-icon layui-icon-engine"></i>
+          </div>
+          <h3>Ruby on Rails</h3>
+          <p>Rails 7.1.4</p>
+        </div>
+      </div>
+
+      <div class="layui-col-md3 layui-col-sm6">
+        <div class="tech-card">
+          <div class="tech-icon">
+            <i class="layui-icon layui-icon-template-1"></i>
+          </div>
+          <h3>Layui</h3>
+          <p>v2.9.8</p>
+        </div>
+      </div>
+
+      <div class="layui-col-md3 layui-col-sm6">
+        <div class="tech-card">
+          <div class="tech-icon">
+            <i class="layui-icon layui-icon-database"></i>
+          </div>
+          <h3>MySQL</h3>
+          <p>8.0.45</p>
+        </div>
+      </div>
+
+      <div class="layui-col-md3 layui-col-sm6">
+        <div class="tech-card">
+          <div class="tech-icon">
+            <i class="layui-icon layui-icon-diamond"></i>
+          </div>
+          <h3>Ruby</h3>
+          <p>3.2.2</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 页脚 -->
+<footer class="site-footer">
+  <div class="layui-container">
+    <div class="layui-row">
+      <div class="layui-col-md12">
+        <p>&copy; 2024 项目管理系统. All rights reserved.</p>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<style>
+  /* 英雄区域 */
+  .hero-section {
+    background: linear-gradient(135deg, #16a34a 0%, #10b981 50%, #059669 100%);
+    color: white;
+    padding: 120px 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-section::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 600px;
+    height: 600px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+  }
+
+  .hero-section::after {
+    content: '';
+    position: absolute;
+    bottom: -50%;
+    left: -20%;
+    width: 500px;
+    height: 500px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 50%;
+  }
+
+  .hero-content {
+    text-align: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  .hero-title {
+    font-size: 48px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    animation: fadeInUp 1s ease-out;
+  }
+
+  .hero-subtitle {
+    font-size: 18px;
+    margin-bottom: 40px;
+    opacity: 0.9;
+    animation: fadeInUp 1s ease-out 0.2s backwards;
+  }
+
+  .hero-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    animation: fadeInUp 1s ease-out 0.4s backwards;
+  }
+
+  .hero-buttons .layui-btn {
+    height: 50px;
+    line-height: 50px;
+    padding: 0 30px;
+    font-size: 16px;
+  }
+
+  /* 特色区域 */
+  .features-section {
+    padding: 80px 0;
+    background: white;
+  }
+
+  .section-title {
+    text-align: center;
+    margin-bottom: 60px;
+  }
+
+  .section-title h2 {
+    font-size: 32px;
+    color: #333;
+    margin-bottom: 10px;
+  }
+
+  .section-title p {
+    font-size: 14px;
+    color: #999;
+  }
+
+  .feature-card {
+    text-align: center;
+    padding: 40px 20px;
+    border-radius: 8px;
+    background: white;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s;
+  }
+
+  .feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+  }
+
+  .feature-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+  }
+
+  .feature-icon i {
+    font-size: 40px;
+    color: white;
+  }
+
+  .feature-card h3 {
+    font-size: 20px;
+    color: #333;
+    margin-bottom: 10px;
+  }
+
+  .feature-card p {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.6;
+  }
+
+  /* 技术栈区域 */
+  .tech-section {
+    padding: 80px 0;
+    background: #f5f7fa;
+  }
+
+  .tech-card {
+    text-align: center;
+    padding: 30px 20px;
+    background: white;
+    border-radius: 8px;
+    transition: all 0.3s;
+  }
+
+  .tech-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  }
+
+  .tech-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #16a34a, #10b981);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 15px;
+  }
+
+  .tech-icon i {
+    font-size: 30px;
+    color: white;
+  }
+
+  .tech-card h3 {
+    font-size: 18px;
+    color: #333;
+    margin-bottom: 5px;
+  }
+
+  .tech-card p {
+    font-size: 14px;
+    color: #999;
+  }
+
+  /* 页脚 */
+  .site-footer {
+    background: #333;
+    color: white;
+    padding: 40px 0;
+    text-align: center;
+  }
+
+  .site-footer p {
+    margin: 0;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  /* 动画 */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* 响应式 */
+  @media screen and (max-width: 768px) {
+    .hero-title {
+      font-size: 32px;
+    }
+
+    .hero-subtitle {
+      font-size: 16px;
+    }
+
+    .hero-buttons {
+      flex-direction: column;
+    }
+
+    .hero-buttons .layui-btn {
+      width: 100%;
+    }
+  }
+</style>
+
+<script>
+  layui.use(['element', 'layer'], function(){
+    var element = layui.element,
+        layer = layui.layer;
+
+    // 页面加载动画
+    document.querySelectorAll('.feature-card, .tech-card').forEach(function(card, index){
+      card.style.opacity = '0';
+      card.style.transform = 'translateY(20px)';
+      card.style.transition = 'all 0.6s ease';
+
+      setTimeout(function(){
+        card.style.opacity = '1';
+        card.style.transform = 'translateY(0)';
+      }, 100 * index);
+    });
+  });
+</script>

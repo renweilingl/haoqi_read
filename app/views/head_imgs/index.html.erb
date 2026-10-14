@@ -1,0 +1,88 @@
+<div class="layui-tab">
+  <div class="x-nav">
+    <span class="layui-breadcrumb">
+      <a><cite>头像库</cite></a>
+    </span>
+    <%= render 'common/user_info' %>
+  </div>
+  <div class="x-body">
+    <div class="layui-row">
+      <div class="layui-col-xs9">
+        <%= search_form_for(@q, url: :head_imgs, :html => {class: :'layui-form layui-col-md12'}) do |f| %>
+          <div class="layui-input-inline" style="width: 120px;">
+            <%= f.select :is_vip_eq, options_for_select([['vip头像', true], ['普通用户', false]], @q.is_vip_eq), { include_blank: "头像类型" } %>
+          </div>
+          <button class="layui-btn layui-bg-blue" lay-submit><i class="layui-icon">&#xe615;</i>查询</button>
+          <%= link_to "重置", :head_imgs, class: "layui-btn layui-btn-primary" %>
+        <% end %>
+      </div>
+      <div class="layui-col-xs3 text-right">
+        <%= link_to :new_head_img, class: 'layui-btn layui-bg-blue' do %>
+          <i class="layui-icon"></i>新增头像
+        <% end %>
+      </div>
+    </div>
+
+    <table class="layui-table">
+      <thead>
+        <tr>
+          <th width="60">ID</th>
+          <th>类型</th>
+          <th>头像</th>
+          <th width="200" style="text-align:center;">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @head_imgs.each do |r| %>
+          <tr>
+            <td><%= r.id %></td>
+            <td>
+              <%= r.is_vip? ? "vip头像" : "普通用户头像" %>
+            </td>
+            <td>
+             <% unless r.img_url.blank? %>
+                <img src="<%= FileMap.new(r.img_url, "img").secrity_src %>" style="width: 48px; object-fit: cover;" />
+              <% end %>
+            </td>
+            <td style="text-align:center;">
+              <div class="layui-btn-group">
+                <%= link_to "编辑", edit_admin_author_path(r), class: "layui-btn layui-btn-sm" %>
+                <%= link_to '删除', head_img_path(r), method: :delete, class: "layui-btn layui-btn-sm layui-bg-red", title: "删除", data: { confirm: "确定要删除此头像吗？此操作不可恢复。" } %>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+    <% if @head_imgs.total_pages > 1 %>
+      <div id="pagination" style="margin-top: 20px;"></div>
+    <% end %>
+  </div>
+</div>
+
+<script>
+  layui.use(['laypage', 'form'], function(){
+    var laypage = layui.laypage,
+        form = layui.form;
+
+    // 分页
+    <% if @head_imgs.total_pages > 1 %>
+    laypage.render({
+      elem: 'pagination',
+      count: <%= @head_imgs.total_entries %>,
+      limit: <%= @head_imgs.per_page %>,
+      curr: <%= @authors.current_page %>,
+      layout: ['count', 'prev', 'page', 'next', 'limit', 'skip'],
+      jump: function(obj, first){
+        if(!first){
+          var url = new URL(window.location.href);
+          url.searchParams.set('page', obj.curr);
+          url.searchParams.set('per_page', obj.limit);
+          window.location.href = url.toString();
+        }
+      }
+    });
+    <% end %>
+  });
+</script>

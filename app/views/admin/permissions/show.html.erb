@@ -1,0 +1,110 @@
+<% content_for :title, "权限详情" %>
+
+<div class="page-header">
+  <h1 class="page-title">权限详情</h1>
+  <div class="page-actions">
+    <%= link_to admin_permissions_path, class: "layui-btn layui-btn-primary" do %>
+      <i class="layui-icon layui-icon-return"></i>
+      返回列表
+    <% end %>
+  </div>
+</div>
+
+<div class="layui-row layui-col-space15">
+  <!-- 左侧：基本信息 -->
+  <div class="layui-col-md8">
+    <div class="layui-card">
+      <div class="layui-card-header">
+        基本信息
+      </div>
+      <div class="layui-card-body">
+        <div class="layui-form" lay-filter="policy-info">
+          <div class="layui-form-item">
+            <label class="layui-form-label">ID</label>
+            <div class="layui-input-block">
+              <div class="layui-form-mid layui-word-aux"><%= @policy.id %></div>
+            </div>
+          </div>
+
+          <div class="layui-form-item">
+            <label class="layui-form-label">权限名称</label>
+            <div class="layui-input-block">
+              <div class="layui-form-mid"><%= @policy.name %></div>
+            </div>
+          </div>
+
+          <div class="layui-form-item">
+            <label class="layui-form-label">权限代码</label>
+            <div class="layui-input-block">
+              <div class="layui-form-mid"><code><%= @policy.code %></code></div>
+            </div>
+          </div>
+
+          <div class="layui-form-item">
+            <label class="layui-form-label">状态</label>
+            <div class="layui-input-block">
+              <% if @policy.enabled %>
+                <span class="layui-badge layui-bg-green">启用</span>
+              <% else %>
+                <span class="layui-badge layui-bg-gray">禁用</span>
+              <% end %>
+            </div>
+          </div>
+
+          <div class="layui-form-item">
+            <label class="layui-form-label">描述</label>
+            <div class="layui-input-block">
+              <div class="layui-form-mid" style="color: #666;"><%= @policy.description || '暂无描述' %></div>
+            </div>
+          </div>
+
+          <div class="layui-form-item">
+            <label class="layui-form-label">创建时间</label>
+            <div class="layui-input-block">
+              <div class="layui-form-mid layui-word-aux"><%= @policy.created_at.strftime("%Y-%m-%d %H:%M:%S") %></div>
+            </div>
+          </div>
+
+          <div class="layui-form-item">
+            <label class="layui-form-label">最后更新</label>
+            <div class="layui-input-block">
+              <div class="layui-form-mid layui-word-aux"><%= @policy.updated_at.strftime("%Y-%m-%d %H:%M:%S") %></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 右侧：图标 -->
+  <div class="layui-col-md4">
+    <div class="layui-card">
+      <div class="layui-card-header">
+        图标
+      </div>
+      <div class="layui-card-body" style="text-align: center;">
+        <div style="
+          width: 120px;
+          height: 120px;
+          background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+          border-radius: 16px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #2563eb;
+          font-size: 64px;
+          margin: 0 auto;
+        ">
+          <i class="layui-icon layui-icon-vercode"></i>
+        </div>
+        <div style="margin-top: 20px; color: #666;"><%= @policy.name %></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .layui-btn-fluid {
+    margin-bottom: 10px;
+  }
+</style>

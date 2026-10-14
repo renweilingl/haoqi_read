@@ -1,0 +1,14 @@
+<div class="layui-tab">
+  <div class="x-nav">
+    <span class="layui-breadcrumb">
+      <a href="">内容管理</a>
+      <%= link_to "图书分级", :admin_book_levels %>
+      <a><cite>新增图书分级</cite></a>
+    </span>
+    <%= render 'common/user_info' %>
+  </div>
+
+  <div class="x-body">
+    <%= render 'form' %>
+  </div>
+</div>

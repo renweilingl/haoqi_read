@@ -1,0 +1,552 @@
+<%= form_for(@splash_ad, url: @splash_ad.new_record? ? :splash_ads : :splash_ad,method: @splash_ad.new_record? ? :post : :put, :html => {:class => "layui-form"}) do |f| %> 
+  <fieldset class="layui-elem-field" style="margin-top: 20px;">
+    <legend>基本信息</legend>
+    <div class="layui-field-box">
+      <div class="layui-form-item">
+        <label class="layui-form-label">手机图片<span style="color: red;">*</span></label>
+        <div class="layui-input-block">
+          <button type="button" class="layui-btn" id="upload-banner">
+            <i class="layui-icon">&#xe67c;</i>上传图片
+          </button>
+          <span class="layui-form-mid layui-word-aux">支持 JPG、PNG、WebP 格式9:16</span>
+          <div id="image-preview" style="margin-top: 10px;">
+            <% if @splash_ad.image_url.present? %>
+              <img src="<%= FileMap.new(@splash_ad.image_url, "img").secrity_src  %>" style="max-width: 300px; max-height: 200px; border-radius: 4px;">
+            <% end %>
+          </div>
+          <input type="hidden" name="splash_ad[image_url]" id="image-url" value="<%= @splash_ad.image_url %>">
+        </div>
+      </div>
+
+      <div class="layui-form-item">
+        <label class="layui-form-label">Pad图片<span style="color: red;">*</span></label>
+        <div class="layui-input-block">
+          <button type="button" class="layui-btn" id="upload-pad-banner">
+            <i class="layui-icon">&#xe67c;</i>上传图片
+          </button>
+          <span class="layui-form-mid layui-word-aux">支持 JPG、PNG、WebP 格式16:9</span>
+          <div id="image-pad-preview" style="margin-top: 10px;">
+            <% if @splash_ad.pad_image_url.present? %>
+              <img src="<%= FileMap.new(@splash_ad.pad_image_url, "img").secrity_src  %>" style="max-width: 300px; max-height: 200px; border-radius: 4px;">
+            <% end %>
+          </div>
+          <input type="hidden" name="splash_ad[pad_image_url]" id="pad-image-url" value="<%= @splash_ad.pad_image_url %>">
+        </div>
+      </div>
+    </div>
+  </fieldset>
+
+  <fieldset class="layui-elem-field">
+    <legend>链接设置</legend>
+    <div class="layui-field-box">
+      <div class="layui-form-item">
+        <label class="layui-form-label">链接类型<span style="color: red;">*</span></label>
+        <div class="layui-input-block">
+          <select name="splash_ad[link_type]" id="link-type-select" lay-verify="required" lay-filter="link-type-filter">
+            <option value="">请选择</option>
+            <% [["single_book", "图书单本"],["compilation", "合辑"]].each do |x| %>
+              <option value="<%= x[0] %>" <%= @splash_ad.link_type == x[0] ? 'selected' : '' %>><%= x[1] %></option>
+             <% end %>
+          </select>
+        </div>
+      </div>
+
+      <div class="layui-form-item" id="book-select-wrapper" style="display: none;">
+        <label class="layui-form-label">选择图书<span style="color: red;">*</span></label>
+        <div class="layui-input-block">
+          <select name="splash_ad[book_id]" id="book-select" lay-search="">
+            <option value="">请搜索选择图书</option>
+            <% @books.each do |book| %>
+              <option value="<%= book.id %>" <%= @splash_ad.book_id == book.id ? 'selected' : '' %>><%= book.name %></option>
+            <% end %>
+          </select>
+        </div>
+      </div>
+
+      <div class="layui-form-item" id="category-select-wrapper" style="display: none;">
+        <label class="layui-form-label">选择分类<span style="color: red;">*</span></label>
+        <div class="layui-input-block">
+          <select name="splash_ad[compilation_id]" id="category-select"  lay-search="">
+            <option value="">请选择分类</option>
+            <% Compilation.all.each do |compilation| %>
+              <option value="<%= compilation.id %>" <%= @splash_ad.compilation_id == compilation.id ? 'selected' : '' %>><%= compilation.name %></option>
+            <% end %>
+          </select>
+        </div>
+      </div>
+    </div>
+  </fieldset>
+
+  <!-- 推送设置 -->
+  <fieldset class="layui-elem-field">
+    <legend>推送设置</legend>
+    <div class="layui-field-box">
+      <div class="layui-form-item">
+        <label class="layui-form-label">推送范围<span style="color: red;">*</span></label>
+        <div class="layui-input-block">
+          <select name="splash_ad[push_scope]" id="push-scope-select" lay-verify="required" lay-filter="push-scope-filter">
+            <% [["all_users", "所有用户"],["age_range", "指定年级"]].each do |x| %>
+              <option value="<%= x[0] %>" <%= @splash_ad.push_scope == x[0] ? 'selected' : '' %>><%= x[1] %></option>
+            <% end %>
+          </select>
+        </div>
+      </div>
+
+      <div class="layui-form-item" id="age-range-wrapper" style="display: none;">
+        <label class="layui-form-label">指定年级<span style="color: red;">*</span></label>
+        <div class="layui-input-block">
+          <div class="grade-checkbox" id="grade-checkbox">
+            <% Grade.all.each do |grade| %>
+              <input type="checkbox" name="splash_ad[grade_ids][]" value=<%= grade.id %> title="<%= grade.name %>" <%= 'checked' if @splash_ad.grade_ids.include?(grade.id) %> />
+            <% end %>
+          </div>
+        </div>
+      </div>
+
+      <div class="layui-form-item" id="user-group-wrapper" style="display: none;">
+        <label class="layui-form-label">用户群体<span style="color: red;">*</span></label>
+        <div class="layui-input-block">
+          <textarea name="splash_ad[user_group]" placeholder="请输入用户ID，多个用逗号分隔" class="layui-textarea"><%= @splash_ad.user_group %></textarea>
+        </div>
+      </div>
+
+      <div class="layui-form-item">
+        <label class="layui-form-label">推送方式<span style="color: red;">*</span></label>
+        <div class="layui-input-block">
+          <select name="splash_ad[push_mode]" id="push-mode-select" lay-verify="required" lay-filter="push-mode-filter">
+            <%# [["immediate", "定时推送"],["first_open_daily", "首次打开app推送"]].each do |x| %>
+            <% [["first_open_daily", "首次打开app推送"]].each do |x| %>
+              <option value="<%= x[0] %>" <%= @splash_ad.push_mode == x[0] ? 'selected' : '' %>><%= x[1] %></option>
+            <% end %>
+          </select>
+        </div>
+      </div>
+
+      <div class="layui-form-item" id="scheduled-time-wrapper" style="display: none;">
+        <label class="layui-form-label">定时时间<span style="color: red;">*</span></label>
+        <div class="layui-input-block">
+          <input type="text" name="splash_ad[scheduled_at]" id="scheduled-at" value="<%= @splash_ad.scheduled_at&.strftime('%Y-%m-%d %H:%M') %>" placeholder="请选择定时推送时间" class="layui-input">
+        </div>
+      </div>
+    </div>
+  </fieldset>
+
+  <!-- 时间设置 -->
+  <fieldset class="layui-elem-field">
+    <legend>投放时间</legend>
+    <div class="layui-field-box">
+      <div class="layui-form-item">
+        <label class="layui-form-label">开始时间<span style="color: red;">*</span></label>
+        <div class="layui-input-block">
+          <input type="text" name="splash_ad[start_time]" id="start-time" value="<%= @splash_ad.start_time&.strftime('%Y-%m-%d %H:%M') %>" placeholder="请选择开始时间" class="layui-input" lay-verify="required">
+        </div>
+      </div>
+
+      <div class="layui-form-item">
+        <label class="layui-form-label">结束时间<span style="color: red;">*</span></label>
+        <div class="layui-input-block">
+          <input type="text" name="splash_ad[end_time]" id="end-time" value="<%= @splash_ad.end_time&.strftime('%Y-%m-%d %H:%M') %>" placeholder="请选择结束时间" class="layui-input" lay-verify="required">
+        </div>
+      </div>
+    </div>
+  </fieldset>
+
+  <!-- 操作按钮 -->
+  <div class="layui-form-item">
+    <div class="layui-input-block">
+      <button type="submit" class="layui-btn layui-btn-normal" lay-submit lay-filter="form-submit">提交保存</button>
+      <%= link_to '取消', splash_ads_path, class: 'layui-btn layui-btn-primary' %>
+    </div>
+  </div>
+<% end %>
+
+<%= render 'common/crop' %>
+
+<script>
+  var bannerOriginalImage = null;
+  var bannerCropRatio = '9:16';
+  var bannerCropState = {
+    x: 0, y: 0, width: 0, height: 0,
+    isDragging: false, dragType: null,
+    startX: 0, startY: 0,
+    startCrop: { x: 0, y: 0, width: 0, height: 0 }
+  };
+  var bannerFileName = '';
+
+  function openBannerCropModal(imageData, fileName) {
+    bannerFileName = fileName;
+    bannerOriginalImage = new Image();
+    bannerOriginalImage.onload = function() {
+      document.getElementById('bannerCropModal').classList.add('active');
+      initBannerCropCanvas();
+    };
+    bannerOriginalImage.src = imageData;
+  }
+
+  function closeBannerCropModal() {
+    document.getElementById('bannerCropModal').classList.remove('active');
+    bannerOriginalImage = null;
+  }
+
+  function initBannerCropCanvas() {
+    var wrapper = document.getElementById('cropCanvasWrapper');
+    var canvas = document.getElementById('cropCanvas');
+    var containerWidth = wrapper.parentElement.clientWidth - 40;
+    var containerHeight = wrapper.parentElement.clientHeight - 40;
+
+    var scale = Math.min(containerWidth / bannerOriginalImage.width, containerHeight / bannerOriginalImage.height);
+    var canvasWidth = bannerOriginalImage.width * scale;
+    var canvasHeight = bannerOriginalImage.height * scale;
+
+    canvas.width = canvasWidth;
+    canvas.height = canvasHeight;
+
+    var ctx = canvas.getContext('2d');
+    ctx.drawImage(bannerOriginalImage, 0, 0, canvasWidth, canvasHeight);
+
+    initBannerCropBox(canvasWidth, canvasHeight);
+  }
+
+  function initBannerCropBox(canvasWidth, canvasHeight) {
+    var cropWidth, cropHeight;
+    var ratioW = parseInt(bannerCropRatio.split(':')[0]);
+    var ratioH = parseInt(bannerCropRatio.split(':')[1]);
+    var targetRatio = ratioW / ratioH;
+
+    // 默认裁剪框宽度等于图片宽度（canvas宽度）                                  
+    cropWidth = canvasWidth;
+    cropHeight = cropWidth / targetRatio;
+
+    if (cropHeight > canvasHeight) {
+      cropHeight = canvasHeight;
+      cropWidth = cropHeight * targetRatio;
+    }
+
+    bannerCropState.x = (canvasWidth - cropWidth) / 2;
+    bannerCropState.y = (canvasHeight - cropHeight) / 2;
+    bannerCropState.width = cropWidth;
+    bannerCropState.height = cropHeight;
+
+    updateBannerCropBox();
+  }
+
+  function updateBannerCropBox() {
+    var cropBox = document.getElementById('cropBox');
+    cropBox.style.left = bannerCropState.x + 'px';
+    cropBox.style.top = bannerCropState.y + 'px';
+    cropBox.style.width = bannerCropState.width + 'px';
+    cropBox.style.height = bannerCropState.height + 'px';
+    updateCropPixelSize();
+  }
+
+  function updateCropPixelSize() {
+    if (!bannerOriginalImage) return;
+
+    var canvas = document.getElementById('cropCanvas');
+
+    var scaleX = bannerOriginalImage.naturalWidth / canvas.width;
+    var scaleY = bannerOriginalImage.naturalHeight / canvas.height;
+
+    var actualWidth = Math.round(bannerCropState.width * scaleX);
+    var actualHeight = Math.round(bannerCropState.height * scaleY);
+
+    var sizeDisplay = document.getElementById('cropPixelSize');
+    if (sizeDisplay) {
+      sizeDisplay.textContent = actualWidth + ' x ' + actualHeight;
+    }
+  }
+
+  var cropBox = document.getElementById('cropBox');
+  cropBox.addEventListener('mousedown', function(e) {
+    if (e.target.classList.contains('crop-corner')) return;
+    bannerCropState.isDragging = true;
+    bannerCropState.dragType = 'move';
+    bannerCropState.startX = e.clientX;
+    bannerCropState.startY = e.clientY;
+    bannerCropState.startCrop = { x: bannerCropState.x, y: bannerCropState.y, width: bannerCropState.width, height: bannerCropState.height };
+    e.preventDefault();
+  });
+
+  document.querySelectorAll('.crop-corner').forEach(function(corner) {
+    corner.addEventListener('mousedown', function(e) {
+      bannerCropState.isDragging = true;
+      bannerCropState.dragType = corner.classList.contains('top-left') || corner.classList.contains('top-right') ||
+                                  corner.classList.contains('bottom-left') || corner.classList.contains('bottom-right') ? corner.className.split(' ')[1] : 'move';
+      bannerCropState.startX = e.clientX;
+      bannerCropState.startY = e.clientY;
+      bannerCropState.startCrop = { x: bannerCropState.x, y: bannerCropState.y, width: bannerCropState.width, height: bannerCropState.height };
+      e.preventDefault();
+      e.stopPropagation();
+    });
+  });
+
+  document.addEventListener('mousemove', function(e) {
+    if (!bannerCropState.isDragging) return;
+    var deltaX = e.clientX - bannerCropState.startX;
+    var deltaY = e.clientY - bannerCropState.startY;
+    var canvas = document.getElementById('cropCanvas');
+    var canvasW = canvas.width;
+    var canvasH = canvas.height;
+
+    var ratioW = parseInt(bannerCropRatio.split(':')[0]);
+    var ratioH = parseInt(bannerCropRatio.split(':')[1]);
+    var targetRatio = ratioW / ratioH;
+    var minSize = 100; // 最小裁剪尺寸
+
+    if (bannerCropState.dragType === 'move') {
+      bannerCropState.x = Math.max(0, Math.min(canvasW - bannerCropState.width, bannerCropState.startCrop.x + deltaX));
+      bannerCropState.y = Math.max(0, Math.min(canvasH - bannerCropState.height, bannerCropState.startCrop.y + deltaY));
+    } else if (bannerCropState.dragType === 'top-left') {
+      // 左上角：向左/上拖动增大，向右/下拖动缩小
+      var newWidth = bannerCropState.startCrop.width - deltaX;
+      var newHeight = newWidth / targetRatio;
+      if (newWidth >= minSize && newHeight >= minSize) {
+        var newX = bannerCropState.startCrop.x + deltaX;
+        var newY = bannerCropState.startCrop.y + (bannerCropState.startCrop.height - newHeight);
+        if (newX >= 0 && newY >= 0) {
+          bannerCropState.x = newX;
+          bannerCropState.y = newY;
+          bannerCropState.width = newWidth;
+          bannerCropState.height = newHeight;
+        }
+      }
+    } else if (bannerCropState.dragType === 'top-right') {
+      // 右上角：向右/上拖动增大，向左/下拖动缩小
+      var newWidth = bannerCropState.startCrop.width + deltaX;
+      var newHeight = newWidth / targetRatio;
+      if (newWidth >= minSize && newHeight >= minSize) {
+        var newY = bannerCropState.startCrop.y + (bannerCropState.startCrop.height - newHeight);
+        if (bannerCropState.startCrop.x + newWidth <= canvasW && newY >= 0) {
+          bannerCropState.y = newY;
+          bannerCropState.width = newWidth;
+          bannerCropState.height = newHeight;
+        }
+      }
+    } else if (bannerCropState.dragType === 'bottom-left') {
+      // 左下角：向左/下拖动增大，向右/上拖动缩小
+      var newWidth = bannerCropState.startCrop.width - deltaX;
+      var newHeight = newWidth / targetRatio;
+      if (newWidth >= minSize && newHeight >= minSize) {
+        var newX = bannerCropState.startCrop.x + deltaX;
+        if (newX >= 0 && bannerCropState.startCrop.y + newHeight <= canvasH) {
+          bannerCropState.x = newX;
+          bannerCropState.width = newWidth;
+          bannerCropState.height = newHeight;
+        }
+      }
+    } else if (bannerCropState.dragType === 'bottom-right') {
+      // 右下角：向右/下拖动增大，向左/上拖动缩小
+      var newWidth = bannerCropState.startCrop.width + deltaX;
+      var newHeight = newWidth / targetRatio;
+      if (newWidth >= minSize && newHeight >= minSize) {
+        if (bannerCropState.startCrop.x + newWidth <= canvasW && bannerCropState.startCrop.y + newHeight <= canvasH) {
+          bannerCropState.width = newWidth;
+          bannerCropState.height = newHeight;
+        }
+      }
+    }
+
+    updateBannerCropBox();
+  });
+
+  document.addEventListener('mouseup', function() {
+    bannerCropState.isDragging = false;
+  });
+
+  function confirmBannerCrop() {
+    var canvas = document.getElementById('cropCanvas');
+    var scale = canvas.width / bannerOriginalImage.width;
+
+    var cropX = bannerCropState.x / scale;
+    var cropY = bannerCropState.y / scale;
+    var cropW = bannerCropState.width / scale;
+    var cropH = bannerCropState.height / scale;
+
+    var resultCanvas = document.createElement('canvas');
+    resultCanvas.width = cropW;
+    resultCanvas.height = cropH;
+
+    var ctx = resultCanvas.getContext('2d');
+    ctx.drawImage(bannerOriginalImage, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+
+    // 转换为Blob并上传
+    resultCanvas.toBlob(function(blob) {
+      var formData = new FormData();
+      formData.append('file', blob, bannerFileName);
+
+      var csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+      fetch('<%= upload_img_files_path %>', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-CSRF-Token': csrfToken
+        }
+      })
+      .then(function(response) { return response.json(); })
+      .then(function(res) {
+        if (res.success) {
+          if(bannerCropRatio === "16:9"){
+            $('#pad-image-url').val(res.url);
+            $('#image-pad-preview').html('<img src="' + res.preivew_url + '" style="max-width: 300px; max-height: 200px; border-radius: 4px;">');
+          } else {
+            $('#image-url').val(res.url);
+            $('#image-preview').html('<img src="' + res.preivew_url + '" style="max-width: 300px; max-height: 200px; border-radius: 4px;">');
+          }
+          layui.layer.msg('图片裁剪上传成功');
+        } else {
+          layui.layer.msg(res.message || '上传失败', {icon: 2});
+        }
+        closeBannerCropModal();
+      })
+      .catch(function(err) {
+        layui.layer.msg('上传失败', {icon: 2});
+        closeBannerCropModal();
+      });
+    }, 'image/jpeg', 0.9);
+  }
+
+layui.use(['form', 'upload', 'laydate', 'layer'], function() {
+  var form = layui.form;
+  var upload = layui.upload;
+  var laydate = layui.laydate;
+  var layer = layui.layer;
+  var $ = layui.$;
+
+  // 初始化时间选择器
+  laydate.render({
+    elem: '#start-time',
+    type: 'datetime',
+    format: 'yyyy-MM-dd HH:mm'
+  });
+
+  laydate.render({
+    elem: '#end-time',
+    type: 'datetime',
+    format: 'yyyy-MM-dd HH:mm'
+  });
+
+  laydate.render({
+    elem: '#scheduled-at',
+    type: 'datetime',
+    format: 'yyyy-MM-dd HH:mm'
+  });
+
+  document.getElementById('upload-banner').addEventListener('click', function() {
+    bannerCropRatio = "9:16";
+    var input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = function(e) {
+      var file = e.target.files[0];
+      if (!file) return;
+
+      var allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      if (!allowedTypes.includes(file.type)) {
+        layer.msg('仅支持 JPG、PNG、WebP 格式', {icon: 2});
+        return;
+      }
+
+      if (file.size > 5 * 1024 * 1024) {
+        layer.msg('文件大小不能超过 5MB', {icon: 2});
+        return;
+      }
+
+      var reader = new FileReader();
+      reader.onload = function(event) {
+        openBannerCropModal(event.target.result, file.name);
+      };
+      reader.readAsDataURL(file);
+    };
+    input.click();
+  });
+
+  document.getElementById('upload-pad-banner').addEventListener('click', function() {
+    bannerCropRatio = "16:9";
+    var input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = function(e) {
+      var file = e.target.files[0];
+      if (!file) return;
+
+      var allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      if (!allowedTypes.includes(file.type)) {
+        layer.msg('仅支持 JPG、PNG、WebP 格式', {icon: 2});
+        return;
+      }
+
+      if (file.size > 5 * 1024 * 1024) {
+        layer.msg('文件大小不能超过 5MB', {icon: 2});
+        return;
+      }
+
+      var reader = new FileReader();
+      reader.onload = function(event) {
+        openBannerCropModal(event.target.result, file.name);
+      };
+      reader.readAsDataURL(file);
+    };
+    input.click();
+  });
+
+  // 链接类型切换
+  form.on('select(link-type-filter)', function(data) {
+    var value = data.value;
+    $('#book-select-wrapper').hide();
+    $('#category-select-wrapper').hide();
+    
+    if (value === 'single_book') {
+      $('#book-select-wrapper').show();
+    } else if (value === 'compilation') {
+      $('#category-select-wrapper').show();
+    }
+    form.render('select');
+  });
+
+  // 推送范围切换
+  form.on('select(push-scope-filter)', function(data) {
+    var value = data.value;
+    $('#age-range-wrapper').hide();
+    $('#user-group-wrapper').hide();
+    
+    if (value === 'age_range') {
+      $('#age-range-wrapper').show();
+    } else if (value === 'specific_users') {
+      $('#user-group-wrapper').show();
+    }
+    form.render();
+  });
+
+  // 推送方式切换
+  form.on('select(push-mode-filter)', function(data) {
+    var value = data.value;
+    $('#scheduled-time-wrapper').hide();
+    
+    if (value === 'immediate') {
+      $('#scheduled-time-wrapper').show();
+    }
+    form.render();
+  });
+
+  // 初始化显示
+  var linkType = $('#link-type-select').val();
+  if (linkType === 'single_book') {
+    $('#book-select-wrapper').show();
+  } else if (linkType === 'compilation') {
+    $('#category-select-wrapper').show();
+  }
+
+  var pushScope = $('#push-scope-select').val();
+  if (pushScope === 'age_range') {
+    $('#age-range-wrapper').show();
+  } else if (pushScope === 'specific_users') {
+    $('#user-group-wrapper').show();
+  }
+
+  var pushMode = $('#push-mode-select').val();
+  if (pushMode === 'immediate') {
+    $('#scheduled-time-wrapper').show();
+  }
+});
+</script>

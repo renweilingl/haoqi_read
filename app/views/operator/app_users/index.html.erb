@@ -1,0 +1,123 @@
+<div class="layui-tab">                                                                                                    
+  <div class="x-nav">                                                            
+    <span class="layui-breadcrumb">                                              
+      <a href="">会员管理</a>
+    </span>
+    <%= render 'common/user_info' %>
+  </div>
+                                                                                 
+  <div class="x-body"> 
+    <div class="layui-row">
+      <%= search_form_for(@q, url: :operator_app_users, :html => {class: :'layui-form layui-col-md12'}) do |f| %>
+        <div class="layui-input-inline" style="width: 140px;">
+          <%= f.text_field :channel_eq, class: :'layui-input', placeholder: "渠道" %>
+        </div>
+        <div class="layui-input-inline" style="width: 140px;">
+          <%= f.text_field :id_eq, class: :'layui-input', placeholder: "用户ID" %>
+        </div>
+        <div class="layui-input-inline" style="width: 140px;">
+          <%= f.text_field :phone_eq, class: :'layui-input', placeholder: "手机号" %>
+        </div>
+        <%#= f.text_field :nickname_cont, class: :'layui-input', placeholder: "昵称" %>
+        <div class="layui-input-inline" style="width: 140px;">
+          <%= f.select :is_vip_eq, options_for_select([['是', true], ['否', false]], @q.is_vip_eq), { include_blank: "是否付费" } %>
+        </div> 
+        <div class="layui-input-inline">
+          <label class="layui-form-label" style="width: 56px;">注册时间</label>
+          <div class="layui-inline" id="ID-laydate-range">
+            <div class="layui-input-inline">
+              <input type="text" name="start_date" value="<%= @start_date %>"  autocomplete="off" id="ID-laydate-start-date" class="layui-input" placeholder="开始日期">
+            </div>
+            <div class="layui-form-mid">-</div>
+            <div class="layui-input-inline">
+              <input type="text" name="end_date" value="<%= @end_date %>" autocomplete="off" id="ID-laydate-end-date" class="layui-input" placeholder="结束日期">
+            </div>
+          </div>
+        </div>
+        <button class="layui-btn layui-bg-blue" lay-submit><i class="layui-icon">&#xe615;</i>查询</button>
+        <%#= link_to "重置", :operator_app_users, class: "layui-btn layui-btn-primary" %> 
+        <a href="javascript:void(0);"  class='layui-btn layui-btn-primary' id="export-data">导出</a>
+      <% end %>
+    </div>
+
+    <table class="layui-table">
+      <thead>
+        <tr>
+          <th>用户ID</th>
+          <th>昵称</th>
+          <th>手机号</th>
+          <th>渠道</th>
+          <th>是否付费</th>
+          <th>付费金额</th>
+          <th>会员到期</th>
+          <th>注册时间</th>
+          <th width="100" style="text-align:center;">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @app_users.each do |r| %>
+          <tr>
+            <td><%= r.id %></td>
+            <td><%= r.nickname %></td>
+            <td><%= r.phone %></td>
+            <td><%= r.channel %></td>
+            <td><%= r.is_vip? ? "是" : "否" %></td>
+            <td><%= r.orders.paid.sum(:amount).round(2) %></td>
+            <td><%= r.vip_expires_at.blank? ? "" : r.vip_expires_at.strftime('%Y-%m-%d') %></td>
+            <td><%= r.created_at.strftime('%Y-%m-%d %H:%M:%S') %></td>
+            <td style="text-align:center;">
+              <div class="layui-btn-group">
+                <%= link_to '赠送会员', new_gift_vip_operator_app_user_path(r), class: "layui-btn layui-btn-sm" %>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+    <% if @app_users.total_pages > 1 %>
+      <div id="pagination" style="margin-top: 20px; text-align: center;"></div>
+    <% end %>
+  </div>
+</div>
+
+<script>
+  $(document).on("click", "a#export-data", function() {
+    var form = $(this).parents("form");
+    var action = form.attr("action");
+
+    form.attr("action", "/operator/app_users/export");
+    form.submit();
+
+    form.attr("action",action);
+  });
+  layui.use(['laypage', 'form', 'layer', 'laydate'], function(){
+    var laydate = layui.laydate;
+        laydate.render({
+          elem: '#ID-laydate-range',
+          range: ['#ID-laydate-start-date', '#ID-laydate-end-date']
+        });
+
+    var laypage = layui.laypage,
+        form = layui.form,
+        layer = layui.layer;
+
+    <% if @app_users.total_pages > 1 %>
+    laypage.render({
+      elem: 'pagination',
+      count: <%= @app_users.total_entries %>,
+      limit: <%= @app_users.per_page %>,
+      curr: <%= @app_users.current_page %>,
+      layout: ['count', 'prev', 'page', 'next', 'limit', 'skip'],
+      jump: function(obj, first){
+        if(!first){
+          var url = new URL(window.location.href);
+          url.searchParams.set('page', obj.curr);
+          url.searchParams.set('per_page', obj.limit);
+          window.location.href = url.toString();
+        }
+      }
+    });
+    <% end %>
+  });
+</script>

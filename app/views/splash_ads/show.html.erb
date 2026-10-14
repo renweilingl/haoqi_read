@@ -1,0 +1,245 @@
+<div class="layui-tab">
+  <div class="x-nav">
+    <span class="layui-breadcrumb">
+      <a href="">运营工具</a>
+      <a href="/splash_ads"><cite>开屏广告</cite></a>
+      <a><cite>开屏广告详情</cite></a>
+    </span>
+    <%= render 'common/user_info' %>
+  </div>
+
+  <div class="x-body">
+    <!-- 广告图片 -->
+    <div style="text-align: center; margin-bottom: 30px;">
+      <% if @splash_ad.image_url.present? %>
+        <img src="<%= FileMap.new(@splash_ad.image_url, "img").secrity_src  %>" style="max-width: 100%; max-height: 400px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+      <% else %>
+        <div style="padding: 60px; background: #f5f5f5; border-radius: 8px; color: #999;">暂无图片</div>
+      <% end %>
+    </div>
+
+    <!-- 统计数据卡片 -->
+    <div class="layui-row layui-col-space15" style="margin-bottom: 20px;">
+      <div class="layui-col-md4">
+        <div class="layui-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+          <div class="layui-card-body" style="text-align: center; padding: 20px;">
+            <div style="font-size: 28px; font-weight: bold;"><%= @stats[:send_count] %></div>
+            <div style="font-size: 14px; opacity: 0.8;">发送数</div>
+          </div>
+        </div>
+      </div>
+      <div class="layui-col-md4">
+        <div class="layui-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
+          <div class="layui-card-body" style="text-align: center; padding: 20px;">
+            <div style="font-size: 28px; font-weight: bold;"><%= @stats[:click_count] %></div>
+            <div style="font-size: 14px; opacity: 0.8;">点击数</div>
+          </div>
+        </div>
+      </div>
+      <div class="layui-col-md4">
+        <div class="layui-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white;">
+          <div class="layui-card-body" style="text-align: center; padding: 20px;">
+            <div style="font-size: 28px; font-weight: bold;"><%= @stats[:click_rate] %></div>
+            <div style="font-size: 14px; opacity: 0.8;">点击率</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 基本信息 -->
+    <table class="layui-table" lay-size="lg">
+      <colgroup>
+        <col width="150">
+        <col>
+      </colgroup>
+      <tbody>
+        <tr>
+          <td><strong>ID</strong></td>
+          <td><%= @splash_ad.id %></td>
+        </tr>
+        <tr>
+          <td><strong>链接类型</strong></td>
+          <td><%= @splash_ad.link_type_name %></td>
+        </tr>
+        <tr>
+          <td><strong>链接目标</strong></td>
+          <td>
+            <% if @splash_ad.link_type == 'single_book' && @splash_ad.book.present? %>
+              <%= @splash_ad.book.name %>
+            <% elsif @splash_ad.link_type == 'compilation' && @splash_ad.compilation.present? %>
+              <%= @splash_ad.compilation.name %>
+            <% end %>
+          </td>
+        </tr>
+        <tr>
+          <td><strong>推送范围</strong></td>
+          <td>
+            <%= @splash_ad.push_scope_name %>
+            <% if @splash_ad.push_scope == 'age_range' %>
+              (<%= @splash_ad.grades.pluck(:name).join("|") %>)
+            <% end %>
+          </td>
+        </tr>
+        <tr>
+          <td><strong>推送方式</strong></td>
+          <td>
+            <%= @splash_ad.push_mode_name %>
+            <% if @splash_ad.scheduled_at.present? %>
+              (<%= @splash_ad.scheduled_at.strftime('%Y-%m-%d %H:%M') %>)
+            <% end %>
+          </td>
+        </tr>
+        <tr>
+          <td><strong>投放时间</strong></td>
+          <td><%= @splash_ad.time_range_display %></td>
+        </tr>
+        <tr>
+          <td><strong>状态</strong></td>
+          <td>
+            <%
+              status_class = case @splash_ad.status
+              when 'draft' then 'layui-bg-gray'
+              when 'scheduled' then 'layui-bg-blue'
+              when 'active' then 'layui-bg-green'
+              when 'expired' then 'layui-bg-orange'
+              when 'disabled' then 'layui-bg-red'
+              end
+            %>
+            <span class="layui-badge <%= status_class %>"><%= @splash_ad.status_name %></span>
+          </td>
+        </tr>
+        <tr>
+          <td><strong>创建时间</strong></td>
+          <td><%= @splash_ad.created_at.strftime('%Y-%m-%d %H:%M:%S') %></td>
+        </tr>
+        <tr>
+          <td><strong>更新时间</strong></td>
+          <td><%= @splash_ad.updated_at.strftime('%Y-%m-%d %H:%M:%S') %></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- 操作按钮 -->
+    <div style="margin-top: 20px;">
+      <%= link_to '返回列表', splash_ads_path, class: 'layui-btn layui-btn-primary' %>
+
+      <% unless @splash_ad.deleted? %>
+        <%= link_to '编辑', edit_splash_ad_path(@splash_ad), class: 'layui-btn layui-btn-normal' %>
+      <% end %>
+
+      <% if @splash_ad.can_publish? && policy(@splash_ad).publish? %>
+        <button class="layui-btn layui-btn-warm" onclick="publishAd(<%= @splash_ad.id %>)">发布</button>
+      <% end %>
+      <% if @splash_ad.status == 'active' && policy(@splash_ad).disable? %>
+        <button class="layui-btn layui-btn-danger" onclick="disableAd(<%= @splash_ad.id %>)">停用</button>
+      <% end %>
+      <% if @splash_ad.status == 'disabled' && policy(@splash_ad).enable? %>
+        <button class="layui-btn layui-btn-normal" onclick="enableAd(<%= @splash_ad.id %>)">启用</button>
+      <% end %>
+
+      <% unless @splash_ad.deleted? %>
+        <button class="layui-btn layui-btn-danger" onclick="deleteAd(<%= @splash_ad.id %>)">删除</button>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<script>
+layui.use(['layer'], function() {
+  var layer = layui.layer;
+  var $ = layui.$;
+
+  // 发布广告
+  window.publishAd = function(id) {
+    layer.confirm('确定要发布该广告吗？', function(index) {
+      $.ajax({
+        url: '/splash_ads/' + id + '/publish',
+        type: 'POST',
+        success: function(res) {
+          if (res.success) {
+            layer.msg('发布成功', { icon: 1 }, function() {
+              location.reload();
+            });
+          } else {
+            layer.msg(res.errors ? res.errors.join(', ') : '发布失败', { icon: 2 });
+          }
+        },
+        error: function() {
+          layer.msg('发布失败', { icon: 2 });
+        }
+      });
+      layer.close(index);
+    });
+  };
+
+  // 停用广告
+  window.disableAd = function(id) {
+    layer.confirm('确定要停用该广告吗？', function(index) {
+      $.ajax({
+        url: '/splash_ads/' + id + '/disable',
+        type: 'POST',
+        success: function(res) {
+          if (res.success) {
+            layer.msg('已停用', { icon: 1 }, function() {
+              location.reload();
+            });
+          } else {
+            layer.msg('操作失败', { icon: 2 });
+          }
+        },
+        error: function() {
+          layer.msg('操作失败', { icon: 2 });
+        }
+      });
+      layer.close(index);
+    });
+  };
+
+  // 启用广告
+  window.enableAd = function(id) {
+    layer.confirm('确定要启用该广告吗？', function(index) {
+      $.ajax({
+        url: '/splash_ads/' + id + '/enable',
+        type: 'POST',
+        success: function(res) {
+          if (res.success) {
+            layer.msg('已启用', { icon: 1 }, function() {
+              location.reload();
+            });
+          } else {
+            layer.msg('操作失败', { icon: 2 });
+          }
+        },
+        error: function() {
+          layer.msg('操作失败', { icon: 2 });
+        }
+      });
+      layer.close(index);
+    });
+  };
+
+  // 删除广告
+  window.deleteAd = function(id) {
+    layer.confirm('确定要删除该广告吗？此操作不可恢复！', { icon: 3, title: '警告' }, function(index) {
+      $.ajax({
+        url: '/splash_ads/' + id,
+        type: 'POST',
+        data: { _method: 'delete' },
+        success: function(res) {
+          if (res.success) {
+            layer.msg('已删除', { icon: 1 }, function() {
+              window.location.href = '/splash_ads';
+            });
+          } else {
+            layer.msg('删除失败', { icon: 2 });
+          }
+        },
+        error: function() {
+          layer.msg('删除失败', { icon: 2 });
+        }
+      });
+      layer.close(index);
+    });
+  };
+});
+</script>

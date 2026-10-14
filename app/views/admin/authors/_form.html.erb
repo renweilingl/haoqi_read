@@ -1,0 +1,312 @@
+<%= form_for(@author, url: @author.new_record? ? :admin_authors : :admin_author,method: @author.new_record? ? :post : :put, :html => {:class => "layui-form"}) do |f| %> 
+  <div class="layui-form-item">
+    <%= f.label :name, "作者", class: "layui-form-label" %>
+    <div class="layui-input-block">
+      <%= f.text_field :name, class: "layui-input", placeholder: "请输入作者名称", lay_verify: "required", lay_reqtext: "作者名不能为空" %>
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <label class="layui-form-label">头像</label>
+    <div class="layui-input-block">
+      <div class="layui-upload">
+        <button type="button" class="layui-btn layui-btn-normal" id="upload-banner">上传头像</button>
+        <span style="margin-left: 10px; color: #999; font-size: 12px;">支持 jpg、png、gif、webp、svg 格式，不超过 2MB</span>
+        <div class="layui-upload-list" id="iconPreview" style="margin-top: 10px;">
+          <img src="<%= @author.head_img.blank? ? '' : FileMap.new(@author.head_img, 'img').secrity_src %>" id="previewImg" style="width: 60px; height: 60px; object-fit: contain; display: <%= @author.head_img.blank? ?  'none' : 'block' %>;">
+          <%= f.hidden_field :head_img, id: "iconInput" %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <div class="layui-input-block">
+      <button type="submit" class="layui-btn layui-bg-blue" lay-submit lay-filter="submit-content">
+        <i class="layui-icon layui-icon-release"></i>提交保存
+      </button>
+      <%= link_to "取消", :admin_authors, class: "layui-btn layui-btn-primary" %>
+    </div>
+  </div>
+<% end %>
+
+<%= render 'common/crop' %>
+
+<script>
+  var bannerOriginalImage = null;
+  var bannerCropRatio = '1:1';
+  var bannerCropState = {
+    x: 0, y: 0, width: 0, height: 0,
+    isDragging: false, dragType: null,
+    startX: 0, startY: 0,
+    startCrop: { x: 0, y: 0, width: 0, height: 0 }
+  };
+  var bannerFileName = '';
+
+  function openBannerCropModal(imageData, fileName) {
+    bannerFileName = fileName;
+    bannerOriginalImage = new Image();
+    bannerOriginalImage.onload = function() {
+      document.getElementById('bannerCropModal').classList.add('active');
+      initBannerCropCanvas();
+    };
+    bannerOriginalImage.src = imageData;
+  }
+
+  function closeBannerCropModal() {
+    document.getElementById('bannerCropModal').classList.remove('active');
+    bannerOriginalImage = null;
+  }
+
+  function initBannerCropCanvas() {
+    var wrapper = document.getElementById('cropCanvasWrapper');
+    var canvas = document.getElementById('cropCanvas');
+    var containerWidth = wrapper.parentElement.clientWidth - 40;
+    var containerHeight = wrapper.parentElement.clientHeight - 40;
+
+    var scale = Math.min(containerWidth / bannerOriginalImage.width, containerHeight / bannerOriginalImage.height);
+    var canvasWidth = bannerOriginalImage.width * scale;
+    var canvasHeight = bannerOriginalImage.height * scale;
+
+    canvas.width = canvasWidth;
+    canvas.height = canvasHeight;
+
+    var ctx = canvas.getContext('2d');
+    ctx.drawImage(bannerOriginalImage, 0, 0, canvasWidth, canvasHeight);
+
+    initBannerCropBox(canvasWidth, canvasHeight);
+  }
+
+  function initBannerCropBox(canvasWidth, canvasHeight) {                        
+    var cropWidth, cropHeight;                                                   
+    var ratioW = parseInt(bannerCropRatio.split(':')[0]);                        
+    var ratioH = parseInt(bannerCropRatio.split(':')[1]);                        
+    var targetRatio = ratioW / ratioH;                                           
+                                                                                 
+    // 默认裁剪框宽度等于图片宽度（canvas宽度）                                  
+    cropWidth = canvasWidth;                                                     
+    cropHeight = cropWidth / targetRatio;                                        
+                                                                                 
+    //如果计算出的高度超过canvas高度，则按高度来调整                             
+    if (cropHeight > canvasHeight) {                                             
+      cropHeight = canvasHeight;                                                 
+      cropWidth = cropHeight * targetRatio;                                      
+    }                                                                            
+                                                                                 
+    bannerCropState.x = (canvasWidth - cropWidth) / 2;                           
+    bannerCropState.y = (canvasHeight - cropHeight) / 2;                         
+    bannerCropState.width = cropWidth;                                           
+    bannerCropState.height = cropHeight;                                         
+                                                                                 
+    updateBannerCropBox();                                                       
+  }
+
+  function updateBannerCropBox() {                                               
+    var cropBox = document.getElementById('cropBox');                            
+    cropBox.style.left = bannerCropState.x + 'px';                               
+    cropBox.style.top = bannerCropState.y + 'px';                                
+    cropBox.style.width = bannerCropState.width + 'px';                          
+    cropBox.style.height = bannerCropState.height + 'px';                        
+    updateCropPixelSize();                                                       
+  }                                                                              
+                                                                                 
+  function updateCropPixelSize() {                                               
+    if (!bannerOriginalImage) return;                                            
+                                                                                 
+    var canvas = document.getElementById('cropCanvas');                          
+                                                                                 
+    var scaleX = bannerOriginalImage.naturalWidth / canvas.width;                
+    var scaleY = bannerOriginalImage.naturalHeight / canvas.height;              
+                                                                                 
+    var actualWidth = Math.round(bannerCropState.width * scaleX);                
+    var actualHeight = Math.round(bannerCropState.height * scaleY);              
+                                                                                 
+    var sizeDisplay = document.getElementById('cropPixelSize');                  
+    if (sizeDisplay) {                                                           
+      sizeDisplay.textContent = actualWidth + ' x ' + actualHeight;              
+    }                                                                            
+  }
+
+  // 裁剪框拖拽                                                                  
+  var cropBox = document.getElementById('cropBox');                              
+  cropBox.addEventListener('mousedown', function(e) {                            
+    if (e.target.classList.contains('crop-corner')) return;                      
+    bannerCropState.isDragging = true;                                           
+    bannerCropState.dragType = 'move';                                           
+    bannerCropState.startX = e.clientX;                                          
+    bannerCropState.startY = e.clientY;                                          
+    bannerCropState.startCrop = { x: bannerCropState.x, y: bannerCropState.y, width: bannerCropState.width, height: bannerCropState.height };
+    e.preventDefault();                                                          
+  });                                                                            
+                                                                                 
+  document.querySelectorAll('.crop-corner').forEach(function(corner) {           
+    corner.addEventListener('mousedown', function(e) {                           
+      bannerCropState.isDragging = true;                                         
+      bannerCropState.dragType = corner.classList.contains('top-left') || corner.classList.contains('top-right') ||
+                                  corner.classList.contains('bottom-left') || corner.classList.contains('bottom-right') ? corner.className.split(' ')[1] : 'move';
+      bannerCropState.startX = e.clientX;                                        
+      bannerCropState.startY = e.clientY;                                        
+      bannerCropState.startCrop = { x: bannerCropState.x, y: bannerCropState.y, width: bannerCropState.width, height: bannerCropState.height };
+      e.preventDefault();                                                        
+      e.stopPropagation();                                                       
+    });                                                                          
+  }); 
+
+  document.addEventListener('mousemove', function(e) {
+    if (!bannerCropState.isDragging) return;
+    var deltaX = e.clientX - bannerCropState.startX;
+    var deltaY = e.clientY - bannerCropState.startY;
+    var canvas = document.getElementById('cropCanvas');
+    var canvasW = canvas.width;
+    var canvasH = canvas.height;
+
+    var ratioW = parseInt(bannerCropRatio.split(':')[0]);
+    var ratioH = parseInt(bannerCropRatio.split(':')[1]);
+    var targetRatio = ratioW / ratioH;
+    var minSize = 100; // 最小裁剪尺寸
+
+    if (bannerCropState.dragType === 'move') {
+      bannerCropState.x = Math.max(0, Math.min(canvasW - bannerCropState.width, bannerCropState.startCrop.x + deltaX));
+      bannerCropState.y = Math.max(0, Math.min(canvasH - bannerCropState.height, bannerCropState.startCrop.y + deltaY));
+    } else if (bannerCropState.dragType === 'top-left') {
+      // 左上角：向左/上拖动增大，向右/下拖动缩小
+      var newWidth = bannerCropState.startCrop.width - deltaX;
+      var newHeight = newWidth / targetRatio;
+      if (newWidth >= minSize && newHeight >= minSize) {
+        var newX = bannerCropState.startCrop.x + deltaX;
+        var newY = bannerCropState.startCrop.y + (bannerCropState.startCrop.height - newHeight);
+        if (newX >= 0 && newY >= 0) {
+          bannerCropState.x = newX;
+          bannerCropState.y = newY;
+          bannerCropState.width = newWidth;
+          bannerCropState.height = newHeight;
+        }
+      }
+    } else if (bannerCropState.dragType === 'top-right') {
+      // 右上角：向右/上拖动增大，向左/下拖动缩小
+      var newWidth = bannerCropState.startCrop.width + deltaX;
+      var newHeight = newWidth / targetRatio;
+      if (newWidth >= minSize && newHeight >= minSize) {
+        var newY = bannerCropState.startCrop.y + (bannerCropState.startCrop.height - newHeight);
+        if (bannerCropState.startCrop.x + newWidth <= canvasW && newY >= 0) {
+          bannerCropState.y = newY;
+          bannerCropState.width = newWidth;
+          bannerCropState.height = newHeight;
+        }
+      }
+    } else if (bannerCropState.dragType === 'bottom-left') {
+      // 左下角：向左/下拖动增大，向右/上拖动缩小
+      var newWidth = bannerCropState.startCrop.width - deltaX;
+      var newHeight = newWidth / targetRatio;
+      if (newWidth >= minSize && newHeight >= minSize) {
+        var newX = bannerCropState.startCrop.x + deltaX;
+        if (newX >= 0 && bannerCropState.startCrop.y + newHeight <= canvasH) {
+          bannerCropState.x = newX;
+          bannerCropState.width = newWidth;
+          bannerCropState.height = newHeight;
+        }
+      }
+    } else if (bannerCropState.dragType === 'bottom-right') {
+      // 右下角：向右/下拖动增大，向左/上拖动缩小
+      var newWidth = bannerCropState.startCrop.width + deltaX;
+      var newHeight = newWidth / targetRatio;
+      if (newWidth >= minSize && newHeight >= minSize) {
+        if (bannerCropState.startCrop.x + newWidth <= canvasW && bannerCropState.startCrop.y + newHeight <= canvasH) {
+          bannerCropState.width = newWidth;
+          bannerCropState.height = newHeight;
+        }
+      }
+    }
+
+    updateBannerCropBox();
+  });
+
+  document.addEventListener('mouseup', function() {
+    bannerCropState.isDragging = false;
+  });
+
+  function confirmBannerCrop() {
+    var canvas = document.getElementById('cropCanvas');
+    var scale = canvas.width / bannerOriginalImage.width;
+
+    var cropX = bannerCropState.x / scale;
+    var cropY = bannerCropState.y / scale;
+    var cropW = bannerCropState.width / scale;
+    var cropH = bannerCropState.height / scale;
+
+    var resultCanvas = document.createElement('canvas');
+    resultCanvas.width = cropW;
+    resultCanvas.height = cropH;
+
+    var ctx = resultCanvas.getContext('2d');
+    ctx.drawImage(bannerOriginalImage, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+
+    // 转换为Blob并上传
+    resultCanvas.toBlob(function(blob) {
+      var formData = new FormData();
+      formData.append('file', blob, bannerFileName);
+
+      // 获取 CSRF token
+      var csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+      fetch('<%= upload_img_files_path %>', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-CSRF-Token': csrfToken
+        }
+      })
+      .then(function(response) { return response.json(); })
+      .then(function(res) {
+        if (res.success) {
+          $('#iconInput').val(res.url);
+          $('#previewImg').attr('src', res.preivew_url).show();
+          layui.layer.msg('Banner裁剪上传成功');
+        } else {
+          layui.layer.msg(res.message || '上传失败', {icon: 2});
+        }
+        closeBannerCropModal();
+      })
+      .catch(function(err) {
+        layui.layer.msg('上传失败', {icon: 2});
+        closeBannerCropModal();
+      });
+    }, 'image/jpeg', 0.9);
+  }
+
+  layui.use(['form', 'layer', 'upload'], function(){
+      var form = layui.form;
+      var layer = layui.layer;
+      var upload = layui.upload;
+
+      form.render();
+
+      document.getElementById('upload-banner').addEventListener('click', function() {
+        var input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = function(e) {
+          var file = e.target.files[0];
+          if (!file) return;
+
+          var allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+          if (!allowedTypes.includes(file.type)) {
+            layer.msg('仅支持 JPG、PNG、WebP 格式', {icon: 2});
+            return;
+          }
+
+          if (file.size > 5 * 1024 * 1024) {
+            layer.msg('文件大小不能超过 5MB', {icon: 2});
+            return;
+          }
+
+          var reader = new FileReader();
+          reader.onload = function(event) {
+            openBannerCropModal(event.target.result, file.name);
+          };
+          reader.readAsDataURL(file);
+        };
+        input.click();
+      });
+  });
+</script>

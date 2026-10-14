@@ -1,0 +1,78 @@
+<div class="layui-tab">
+  <div class="x-nav">
+    <span class="layui-breadcrumb">
+      <a href="">统计报表</a>
+      <a><cite>活跃用户统计</cite></a>
+    </span>
+    <%= render 'common/user_info' %>
+  </div>
+
+  <div class="x-body">
+    <div class="layui-row">
+      <%= search_form_for(@q, url: :statistic_channel_reports, :html => {class: :'layui-form layui-col-md12'}) do |f| %>
+        <div class="layui-input-inline">
+          <label class="layui-form-label" style="width: 56px;">日期范围</label>
+          <div class="layui-inline" id="ID-laydate-range">
+            <div class="layui-input-inline">
+              <input type="text" name="start_date" value="<%= @start_date %>"  autocomplete="off" id="ID-laydate-start-date" class="layui-input" placeholder="开始日期">
+            </div>
+            <div class="layui-form-mid">-</div>
+            <div class="layui-input-inline">
+              <input type="text" name="end_date" value="<%= @end_date %>" autocomplete="off" id="ID-laydate-end-date" class="layui-input" placeholder="结束日期">
+            </div>
+          </div>
+        </div>
+
+        <button class="layui-btn layui-bg-blue" lay-submit lay-filter="demo-table-search"><i class="layui-icon">&#xe615;</i>查询</button>
+        <%= link_to "重置", :statistic_channel_reports, class: "layui-btn layui-btn-primary" %>
+        <a href="javascript:void(0);"  class='layui-btn layui-btn-primary' id="export-data" style="float: right;">导出</a>
+      <% end %>
+    </div>
+
+    <table class="layui-table" id="main-table"></table>
+  </div>
+</div>
+
+<script>
+    $(document).on("click", "a#export-data", function() {
+        var form = $(this).parents("form");
+        var action = form.attr("action");
+
+        form.attr("action", "/statistic/channel_reports/export");
+        form.submit();
+
+        form.attr("action",action);
+    })
+    layui.use(['table', 'laydate'],function(){
+        var laydate = layui.laydate;
+        laydate.render({
+          elem: '#ID-laydate-range',
+          range: ['#ID-laydate-start-date', '#ID-laydate-end-date']
+        });
+
+        var table = layui.table;
+        table.render({
+            elem: '#main-table',
+            url: '/statistic/channel_reports',
+            page: {
+                layout: ['count', 'prev', 'page', 'next', 'limit', 'skip'],
+                limit: 90,
+                groups: 10,
+                theme: '#1E9FFF',
+                first: '首页',
+                last: '尾页',
+                prev: '上一页',
+                next: '下一页'
+            },
+            cols: [[
+                {field: 'record_date', title: '日期'},
+                {field: 'channel', title: '渠道'},
+                {field: 'registrations', title: '新注册人数'},
+                {field: 'active_users', title: '活跃用户数'},
+                {field: 'paid_users', title: '付费用户数'},
+                {field: 'conversion_rate', title: '付费转化率'},
+                {field: 'cac', title: '获客成本'},
+            ]],
+        });
+    })
+</script>

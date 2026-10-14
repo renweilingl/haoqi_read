@@ -1,0 +1,121 @@
+<div class="layui-tab">                                                                                                    
+  <div class="x-nav">                                                            
+    <span class="layui-breadcrumb">                                              
+      <a href="">会员管理</a>
+      <a><cite>订单管理</cite></a>
+    </span>
+    <%= render 'common/user_info' %>
+  </div>
+                                                                                 
+  <div class="x-body"> 
+    <div class="layui-row">
+      <%= search_form_for(@q, url: :operator_orders, :html => {class: :'layui-form layui-col-md12'}) do |f| %>
+        <div class="layui-input-inline">
+          <%= f.text_field :app_user_id_eq, class: :'layui-input', placeholder: "用户ID" %>
+        </div>
+        <div class="layui-input-inline">
+          <%= f.text_field :channel_eq, class: :'layui-input', placeholder: "渠道" %>
+        </div>
+        <div class="layui-input-inline">
+          <%= f.text_field :order_no_eq, class: :'layui-input', placeholder: "订单编号" %>
+        </div>
+        <div class="layui-input-inline" style="width: 120px;">
+          <%= f.select :status_eq, options_for_select([['待支付','pending'], ['已支付','paid'],['支付失败','failed'],['已退款','refunded']], @q.status_eq), { include_blank: "所有状态" } %>
+        </div>
+
+        <div class="layui-input-inline">
+          <label class="layui-form-label" style="width: 56px;">日期范围</label>
+          <div class="layui-inline" id="ID-laydate-range">
+            <div class="layui-input-inline">
+              <input type="text" name="start_date" value="<%= @start_date %>"  autocomplete="off" id="ID-laydate-start-date" class="layui-input" placeholder="开始日期">
+            </div>
+            <div class="layui-form-mid">-</div>
+            <div class="layui-input-inline">
+              <input type="text" name="end_date" value="<%= @end_date %>" autocomplete="off" id="ID-laydate-end-date" class="layui-input" placeholder="结束日期">
+            </div>
+          </div>
+        </div>
+
+        <button class="layui-btn layui-bg-blue" lay-submit><i class="layui-icon">&#xe615;</i>查询</button>
+        <%#= link_to "重置", :operator_orders, class: "layui-btn layui-btn-primary" %> 
+        <a href="javascript:void(0);"  class='layui-btn layui-btn-primary' id="export-data">导出</a>
+      <% end %>
+    </div>
+
+    <table class="layui-table">
+      <thead>
+        <tr>
+          <th>用户ID</th>
+          <th>渠道</th>
+          <th>套餐包</th>
+          <th>订单号</th>
+          <th>金额</th>
+          <th>支付方式</th>
+          <th>状态</th>
+          <th>注册时间</th>
+          <th>支付时间</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @orders.each do |order| %>
+          <tr>
+            <td><%= order.app_user_id %></td>
+            <td><%= order.channel %></td>
+            <td><%= order.package&.name %></td>
+            <td><%= order.order_no %></td>
+            <td><%= order.amount.round(2) %></td>
+            <td><%= order.payment_method %></td>
+            <td><%= order.hum_status %></td>
+            <td><%= order.app_user.created_at.strftime("%Y-%m-%d %H:%M:%S") %></td>
+            <td><%= order.created_at.strftime('%Y-%m-%d %H:%M:%S') %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+    <% if @orders.total_pages > 1 %>
+      <div id="pagination" style="margin-top: 20px; text-align: center;"></div>
+    <% end %>
+  </div>
+</div>
+
+<script>
+  $(document).on("click", "a#export-data", function() {
+    var form = $(this).parents("form");
+    var action = form.attr("action");
+
+    form.attr("action", "/operator/orders/export");
+    form.submit();
+
+    form.attr("action",action);
+  });
+  layui.use(['laypage', 'form', 'layer', 'laydate'], function(){
+    var laydate = layui.laydate;
+        laydate.render({
+          elem: '#ID-laydate-range',
+          range: ['#ID-laydate-start-date', '#ID-laydate-end-date']
+        });
+
+    var laypage = layui.laypage,
+        form = layui.form,
+        layer = layui.layer;
+
+    <% if @orders.total_pages > 1 %>
+    laypage.render({
+      elem: 'pagination',
+      count: <%= @orders.total_entries %>,
+      limit: <%= @orders.per_page %>,
+      curr: <%= @orders.current_page %>,
+      layout: ['count', 'prev', 'page', 'next', 'limit', 'skip'],
+      jump: function(obj, first){
+        if(!first){
+          var url = new URL(window.location.href);
+          url.searchParams.set('page', obj.curr);
+          url.searchParams.set('per_page', obj.limit);
+          window.location.href = url.toString();
+        }
+      }
+    });
+    <% end %>
+  });
+</script>

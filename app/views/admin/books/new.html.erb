@@ -1,0 +1,89 @@
+<div class="layui-tab">
+  <div class="x-nav">
+    <span class="layui-breadcrumb">
+      <%= link_to "合辑管理", :admin_compilations %>
+      <a href="<%= admin_compilation_books_path(@compilation) %>"><cite><%= @compilation.name %></cite></a>
+      <a><cite>添加内容</cite></a>
+    </span>
+    <%= render 'common/user_info' %>
+  </div>
+  <div class="x-body">
+    <div class="layui-row">
+      <div class="layui-col-xs6">
+        <button class="layui-btn layui-bg-blue" onclick="batchAdd();">批量添加</button>
+      </div>
+      <div class="layui-col-xs6" style="text-aligin: right;">
+        <%= search_form_for(@q, url: new_admin_compilation_book_path(@compilation), :html => {class: :'layui-form layui-col-md12'}) do |f| %>
+          <div class="layui-input-inline" style="width: 140px;">
+            <%= f.select :category_id_eq, options_for_select(Category.all.map { |x| [x.name, x.id] }, @q.category_id_eq), { include_blank: "图书分类" } %>
+          </div>
+          <div class="layui-input-inline">
+            <%= f.text_field :name_cont, class: :'layui-input', placeholder: "图书名称" %>
+          </div>
+          <button class="layui-btn layui-bg-blue" lay-submit lay-filter="demo-table-search"><i class="layui-icon">&#xe615;</i>查询</button>
+          <%= link_to "重置", new_admin_compilation_book_path(@compilation), class: "layui-btn layui-btn-primary" %>
+        <% end %>
+      </div>
+    </div>
+
+    <%= form_tag admin_compilation_books_path(@compilation), method: :post, class: "layui-form" do %>
+      <table class="layui-table" id="main-table"></table>
+    <% end %>
+  </div>
+</div>
+
+<script>                                                                         
+  layui.use(['table'],function(){
+    var table = layui.table;
+
+    table.render({
+      elem: '#main-table',
+      url: '<%=  new_admin_compilation_book_path(@compilation) %>',
+      cols: [[
+        {type: 'checkbox', data: 'id'},
+        {field: 'id', title: 'ID', hide: true},
+        {field: 'category_name', title: '分类'},
+        {field: 'name', title: '内容'},
+      ]]
+    });
+
+    var form = layui.form;
+    form.on('submit(demo-table-search)', function(data){
+      var field = data.field; // 获得表单字段
+      table.reload('main-table', {
+        where: field
+      });
+      return false; // 阻止默认 form 跳转
+    });
+  })
+
+  function get_ids() {
+      var table = layui.table;
+      let ctrCheckArr = [];
+      ctrCheckArr.length = 0;
+      let checkStatus = table.checkStatus('main-table'),
+          data = checkStatus.data; //获取选中的数据
+      for (let i = 0; i < data.length; i++) {
+          ctrCheckArr.push(data[i].id)
+      }
+      return ctrCheckArr;
+  }
+
+  function batchAdd() {
+    var ids = get_ids();
+    $.ajax({
+      url: '<%= admin_compilation_books_path(@compilation) %>',
+      dataType: 'json',
+      type: 'post',
+      data: {book_ids: ids},
+      success: function(res) {
+        if(res.code == 0){
+          window.location.href = '<%= admin_compilation_books_path(@compilation) %>';
+        } else {
+          layer.msg('修改失败');
+        }
+      }
+    })
+  }
+
+</script>

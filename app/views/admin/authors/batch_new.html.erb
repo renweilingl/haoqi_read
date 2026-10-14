@@ -1,0 +1,51 @@
+<div class="layui-tab">
+  <div class="x-nav">
+    <span class="layui-breadcrumb">
+      <%= link_to "作者管理", :admin_authors %>
+      <a><cite>批量上传</cite></a>
+    </span>
+    <%= render 'common/user_info' %>
+  </div>
+
+  <div class="x-body">
+    <div class="layui-row" style="padding-top: 10px;">
+      <div class="layui-col-xs9">
+        <div class="grid-demo">
+          <div class="layui-btn-container">
+            <div class="layui-upload-drag" style="display: block;" id="ID-upload-demo-drag">
+              <i class="layui-icon layui-icon-upload"></i>
+              <div>点击上传，或将文件拖拽到此处(xlsx)</div>
+              <div class="layui-hide" id="ID-upload-demo-preview">
+                <hr>
+              </div>
+            </div>
+          </div>
+
+          <div class="layui-btn-container" style="margin-top: 20px">
+            <button type="button" class="layui-btn layui-bg-blue" id="ID-upload-demo-action">确认导入</button>
+            <%= link_to "取消", :admin_authors, class: "layui-btn layui-btn-primary" %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+layui.use(function(){
+  var upload = layui.upload;
+  upload.render({
+    elem: '#ID-upload-demo-drag',
+    url: '<%= batch_add_admin_authors_path %>',
+    auto: false,
+    accept: 'file',
+    exts: 'xlsx',
+    multiple: false,
+    bindAction: '#ID-upload-demo-action',
+    done: function(res){
+      layer.msg('上传成功');
+      window.location.href = "/admin/authors";
+    }
+  });
+});
+</script>

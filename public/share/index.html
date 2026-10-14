@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+		<title>少年越读</title>
+		<style>
+			/* 全局统一品牌主调色：0xFFFFBB00 */
+			:root {
+				--theme-color: #FFBB00;
+				--text-dark: #222222;
+			}
+
+			body {
+				font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+				background-color: #f7f9fa;
+				margin: 0;
+				padding: 0;
+				color: #333;
+				padding-bottom: 100px;
+			}
+
+			.container {
+				max-width: 600px;
+				margin: 0 auto;
+				background-color: #ffffff;
+				min-height: 100vh;
+				box-sizing: border-box;
+			}
+
+			/* ========================================== */
+			/* 🏢 统一顶部：APP 品牌导航栏                 */
+			/* ========================================== */
+			.top-brand-bar {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				padding: 10px 16px;
+				background-color: #ffffff;
+				border-bottom: 1px solid #eef2f5;
+				position: sticky;
+				top: 0;
+				z-index: 100;
+			}
+
+			.brand-left {
+				display: flex;
+				align-items: center;
+			}
+
+			.brand-logo {
+				width: 34px;
+				height: 34px;
+				object-fit: cover;
+				border-radius: 8px;
+				margin-right: 10px;
+			}
+
+			.brand-name {
+				font-size: 15px;
+				font-weight: bold;
+				color: #111;
+			}
+
+			.brand-right-btn {
+				background: transparent;
+				border: 1px solid var(--theme-color);
+				color: var(--text-dark);
+				padding: 5px 14px;
+				border-radius: 16px;
+				font-size: 13px;
+				font-weight: 500;
+				cursor: pointer;
+			}
+
+			/* ========================================== */
+			/* 🔒 ✨ 新增：1001 安全验证/链接过期 完美兜底UI */
+			/* ========================================== */
+			.expired-wrapper {
+				padding: 40px 24px;
+				text-align: center;
+				background: #ffffff;
+			}
+
+			/* 纯CSS绘制的动态藏宝箱徽章 */
+			.expired-badge-box {
+				width: 80px;
+				height: 80px;
+				background-color: #FFF9E6;
+				border-radius: 50%;
+				margin: 0 auto 20px auto;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				font-size: 40px;
+				box-shadow: 0 8px 20px rgba(255, 187, 0, 0.15);
+				animation: floating 3s ease-in-out infinite;
+			}
+
+			.expired-title {
+				font-size: 20px;
+				font-weight: bold;
+				color: #111111;
+				margin-bottom: 8px;
+			}
+
+			.expired-desc {
+				font-size: 14px;
+				color: #777777;
+				line-height: 1.5;
+				margin-bottom: 36px;
+			}
+
+			/* 引导进入APP的核心权益墙 */
+			.app-benefit-grid {
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				gap: 14px;
+				margin-bottom: 40px;
+				text-align: left;
+			}
+
+			.benefit-card {
+				background: #FAFAFA;
+				border: 1px solid #F0F0F0;
+				border-radius: 12px;
+				padding: 14px;
+				display: flex;
+				align-items: center;
+			}
+
+			.benefit-icon {
+				font-size: 24px;
+				margin-right: 12px;
+			}
+
+			.benefit-info h4 {
+				margin: 0 0 2px 0;
+				font-size: 14px;
+				color: #222;
+				font-weight: bold;
+			}
+
+			.benefit-info p {
+				margin: 0;
+				font-size: 11px;
+				color: #999;
+			}
+
+			/* 呼吸灯按钮动画 */
+			@keyframes pulseBtn {
+				0% {
+					box-shadow: 0 4px 14px rgba(255, 187, 0, 0.4);
+				}
+
+				50% {
+					box-shadow: 0 4px 24px rgba(255, 187, 0, 0.7);
+				}
+
+				100% {
+					box-shadow: 0 4px 14px rgba(255, 187, 0, 0.4);
+				}
+			}
+
+			@keyframes floating {
+
+				0%,
+				100% {
+					transform: translateY(0);
+				}
+
+				50% {
+					transform: translateY(-6px);
+				}
+			}
+
+			/* ========================================== */
+			/* 🎨 皮肤组件库 (图书1/漫画2/音频3/视频4)       */
+			/* ========================================== */
+			/* 漫画 (categoryId: 2) */
+			.manga-display-mock {
+				width: 100%;
+				height: 200px;
+				background-color: #FFFDEB;
+				background-image: radial-gradient(#ffe082 15%, transparent 16%);
+				background-size: 14px 14px;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				position: relative;
+				border-bottom: 3px dashed #222222;
+				overflow: hidden;
+			}
+
+			.manga-cover-frame {
+				position: relative;
+				width: 102px;
+				height: 142px;
+				border: 3px solid #222222;
+				border-radius: 4px;
+				box-shadow: 6px 6px 0px #222222;
+				background: #fff;
+				transform: rotate(-3deg);
+				z-index: 2;
+			}
+
+			.manga-render-img {
+				width: 100%;
+				height: 100%;
+				object-fit: cover;
+			}
+
+			.manga-sticker {
+				position: absolute;
+				right: 45px;
+				top: 32px;
+				background: #ff453a;
+				color: #ffffff;
+				font-size: 11px;
+				font-weight: bold;
+				padding: 4px 10px;
+				border: 2px solid #222222;
+				border-radius: 12px;
+				box-shadow: 3px 3px 0px #222222;
+				transform: rotate(8deg);
+				z-index: 3;
+			}
+
+			.manga-sticker::before {
+				content: '';
+				position: absolute;
+				bottom: -6px;
+				left: 14px;
+				border-width: 6px 6px 0 0;
+				border-style: solid;
+				border-color: #222222 transparent transparent transparent;
+			}
+
+			.manga-sticker::after {
+				content: '';
+				position: absolute;
+				bottom: -3px;
+				left: 15px;
+				border-width: 5px 5px 0 0;
+				border-style: solid;
+				border-color: #ff453a transparent transparent transparent;
+			}
+
+			/* 图书 (categoryId: 1) */
+			.book-display-mock {
+				width: 100%;
+				height: 210px;
+				background: linear-gradient(to bottom, #fdfaf2 0%, #f5efe2 100%);
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				border-bottom: 1px solid #ebdcb9;
+			}
+
+			.book-3d-wrapper {
+				position: relative;
+				width: 115px;
+				height: 161px;
+				box-shadow: 6px 10px 24px rgba(115, 92, 53, 0.25), 1px 1px 3px rgba(0, 0, 0, 0.1);
+				border-radius: 2px 6px 6px 2px;
+				overflow: hidden;
+			}
+
+			.book-render-cover {
+				width: 100%;
+				height: 100%;
+				object-fit: cover;
+			}
+
+			.book-3d-wrapper::before {
+				content: '';
+				position: absolute;
+				top: 0;
+				left: 0;
+				bottom: 0;
+				width: 5px;
+				background: linear-gradient(to right, rgba(0, 0, 0, 0.25) 0%, rgba(255, 255, 255, 0.15) 60%, rgba(0, 0, 0, 0) 100%);
+				z-index: 3;
+			}
+
+			/* 音频 (categoryId: 3) */
+			.audio-player-mock {
+				position: relative;
+				width: 100%;
+				height: 160px;
+				background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+				display: flex;
+				align-items: center;
+				padding: 0 20px;
+				box-sizing: border-box;
+				overflow: hidden;
+			}
+
+			.audio-cover {
+				width: 80px;
+				height: 112px;
+				object-fit: cover;
+				border-radius: 6px;
+				box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+				z-index: 2;
+			}
+
+			.audio-mid-controls {
+				margin-left: 20px;
+				z-index: 2;
+			}
+
+			.audio-play-circle {
+				width: 44px;
+				height: 44px;
+				background: var(--theme-color);
+				border-radius: 50%;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				margin-bottom: 12px;
+				cursor: pointer;
+				box-shadow: 0 4px 10px rgba(255, 187, 0, 0.3);
+			}
+
+			.audio-play-circle::after {
+				content: '▶';
+				color: var(--text-dark);
+				font-size: 14px;
+				margin-left: 2px;
+			}
+
+			.audio-time-mock {
+				font-size: 12px;
+				color: #94a3b8;
+				font-family: monospace;
+			}
+
+			.audio-wave-container {
+				display: flex;
+				align-items: flex-end;
+				gap: 3px;
+				height: 24px;
+				margin-left: auto;
+				padding-right: 10px;
+				z-index: 2;
+			}
+
+			.wave-bar {
+				width: 3px;
+				height: 100%;
+				background-color: var(--theme-color);
+				border-radius: 2px;
+				transform-origin: bottom;
+				animation: bounceWave 1.2s ease-in-out infinite;
+			}
+
+			.wave-bar:nth-child(2) {
+				animation-delay: 0.15s;
+			}
+
+			.wave-bar:nth-child(3) {
+				animation-delay: 0.3s;
+			}
+
+			.wave-bar:nth-child(4) {
+				animation-delay: 0.45s;
+			}
+
+			.wave-bar:nth-child(5) {
+				animation-delay: 0.6s;
+			}
+
+			@keyframes bounceWave {
+
+				0%,
+				100% {
+					transform: scaleY(0.2);
+				}
+
+				50% {
+					transform: scaleY(1);
+				}
+			}
+
+			/* 视频 (categoryId: 4) */
+			.video-player-mock {
+				position: relative;
+				width: 100%;
+				padding-top: 56.25%;
+				background-color: #111111;
+				overflow: hidden;
+			}
+
+			.video-poster {
+				position: absolute;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				object-fit: cover;
+				opacity: 0.65;
+			}
+
+			.video-play-center {
+				position: absolute;
+				top: 50%;
+				left: 50%;
+				transform: translate(-50%, -50%);
+				width: 56px;
+				height: 56px;
+				background: rgba(0, 0, 0, 0.65);
+				border: 2px solid var(--theme-color);
+				border-radius: 50%;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				cursor: pointer;
+				z-index: 5;
+			}
+
+			.video-play-center::after {
+				content: '';
+				display: block;
+				width: 0;
+				height: 0;
+				border-style: solid;
+				border-width: 9px 0 9px 16px;
+				border-color: transparent transparent transparent var(--theme-color);
+				margin-left: 4px;
+			}
+
+			.video-controls-mock {
+				position: absolute;
+				bottom: 0;
+				left: 0;
+				right: 0;
+				height: 36px;
+				background: linear-gradient(to top, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0));
+				display: flex;
+				align-items: center;
+				padding: 0 12px;
+				color: #fff;
+				font-size: 11px;
+				z-index: 5;
+			}
+
+			.v-play-icon {
+				font-size: 13px;
+				margin-right: 10px;
+				color: var(--theme-color);
+			}
+
+			.v-progress-bar {
+				flex: 1;
+				height: 3px;
+				background: rgba(255, 255, 255, 0.3);
+				border-radius: 2px;
+				margin-right: 12px;
+			}
+
+			.v-progress-current {
+				width: 42%;
+				height: 100%;
+				background: var(--theme-color);
+				border-radius: 2px;
+			}
+
+			/* ========================================== */
+			/* 📝 公共：信息排版结构                       */
+			/* ========================================== */
+			.course-info-box {
+				padding: 20px 16px;
+				background: #fff;
+				border-bottom: 8px solid #f7f9fa;
+			}
+
+			.badge-tag {
+				display: inline-block;
+				padding: 2px 8px;
+				background-color: var(--theme-color);
+				color: var(--text-dark);
+				font-size: 11px;
+				font-weight: bold;
+				border-radius: 4px;
+				margin-right: 8px;
+				vertical-align: middle;
+			}
+
+			.course-title {
+				font-size: 19px;
+				font-weight: bold;
+				color: #111;
+				line-height: 1.4;
+				margin: 0;
+				display: inline;
+				vertical-align: middle;
+			}
+
+			.course-sub {
+				font-size: 13px;
+				color: #999;
+				margin: 10px 0 4px 0;
+			}
+
+			.course-author {
+				font-size: 13px;
+				color: #555;
+				margin: 4px 0 0 0;
+			}
+
+			.intro-section {
+				padding: 20px 16px;
+				background: #fff;
+			}
+
+			.section-title {
+				font-size: 16px;
+				font-weight: bold;
+				margin: 0 0 14px 0;
+				color: #111;
+				border-left: 4px solid var(--theme-color);
+				padding-left: 8px;
+			}
+
+			.intro-content {
+				font-size: 14px;
+				color: #444;
+				line-height: 1.6;
+			}
+
+			.intro-content p {
+				margin: 0 0 10px 0;
+			}
+
+			/* ========================================== */
+			/* 🎯 底部固定控制大圆弧激活按键                */
+			/* ========================================== */
+			.fixed-bottom-bar {
+				position: fixed;
+				bottom: 0;
+				left: 0;
+				right: 0;
+				max-width: 600px;
+				margin: 0 auto;
+				background: linear-gradient(to top, rgba(255, 255, 255, 1) 85%, rgba(255, 255, 255, 0) 0%);
+				padding: 12px 20px 24px 20px;
+				box-sizing: border-box;
+				z-index: 999;
+			}
+
+			.download-action-btn {
+				display: block;
+				width: 100%;
+				height: 50px;
+				line-height: 50px;
+				background-color: var(--theme-color);
+				color: var(--text-dark);
+				text-align: center;
+				border: none;
+				border-radius: 25px;
+				font-size: 16px;
+				font-weight: bold;
+				cursor: pointer;
+				box-shadow: 0 4px 14px rgba(255, 187, 0, 0.4);
+				transition: transform 0.1s;
+			}
+
+			.download-action-btn.pulse {
+				animation: pulseBtn 2s infinite;
+			}
+
+			.download-action-btn:active {
+				transform: scale(0.98);
+			}
+
+			.status-loading {
+				text-align: center;
+				padding: 120px 20px;
+				color: #999;
+			}
+		</style>
+	</head>
+	<body>
+
+		<div class="container">
+			<div class="top-brand-bar">
+				<div class="brand-left">
+					<img class="brand-logo" src="/share/img/logo.png"
+						onerror="this.src='https://via.placeholder.com/100?text=LOGO'" alt="LOGO">
+					<span class="brand-name">少年越读</span>
+				</div>
+				<button class="brand-right-btn" onclick="triggerAppWakeup()">打开APP</button>
+			</div>
+
+			<div id="dynamicContent">
+				<div class="status-loading">🔍 正在智能解析“少年越读”分享内容...</div>
+			</div>
+		</div>
+
+		<script>
+			document.addEventListener('DOMContentLoaded', () => {
+				const urlParams = new URLSearchParams(window.location.search);
+				const shareId = urlParams.get('id') || '12';
+				const shareUuid = urlParams.get('uuid') || 'b78b4dcf20874476a8a650e1d82c3770';
+
+				fetchShareData(shareId, shareUuid);
+			});
+
+			async function fetchShareData(id, uuid) {
+				const dynamicContent = document.getElementById('dynamicContent');
+				const url = `https://api.zheliyuedu.cn/api/books/by_id?id=${id}&uuid=${uuid}`;
+
+				try {
+					const response = await fetch(url, {
+						method: 'GET'
+					});
+					if (!response.ok) throw new Error(`HTTP 异常: ${response.status}`);
+					const resData = await response.json();
+
+					// ==========================================
+					// 🔒 新增分支：拦截 1001 账户过期/安全码失效异常
+					// ==========================================
+					if (resData.response && resData.response.code === 1001) {
+						renderExpiredSafetyUI();
+						return;
+					}
+
+					// ==========================================
+					// 🟢 正常状态数据渲染逻辑 (code: 0)
+					// ==========================================
+					if (resData.response && resData.response.code === 0) {
+						const book = resData.response.data.book;
+						const categoryId = Number(book.category_id) || 1;
+
+						let playerHtml = '';
+						let badgeText = '';
+						let subText = '';
+						let actionBtnText = '';
+
+						if (categoryId === 1) {
+							// 📚 图书
+							badgeText = '课外书';
+							const words = book.word_count ? (book.word_count > 10000 ? (book.word_count / 10000).toFixed(1) +
+								'万字' : book.word_count + '字') : '精品必读';
+							subText = `规格：${words} ｜ 少年专属优质读物`;
+							actionBtnText = '打开 APP 立即阅读';
+							playerHtml = `
+                    <div class="book-display-mock" onclick="triggerAppWakeup()">
+                        <div class="book-3d-wrapper">
+                            <img class="book-render-cover" src="${book.cover_image_url}" alt="图书封面">
+                        </div>
+                    </div>
+                `;
+						} else if (categoryId === 2) {
+							// 🎨 漫画
+							badgeText = '漫画';
+							subText = `连载更新中 ｜ 释放压力，轻松快乐看漫`;
+							actionBtnText = '打开 APP 趣味追漫';
+							playerHtml = `
+                    <div class="manga-display-mock" onclick="triggerAppWakeup()">
+                        <div class="manga-cover-frame">
+                            <img class="manga-render-img" src="${book.cover_image_url}" alt="漫画封面">
+                        </div>
+                        <div class="manga-sticker">全彩连载🔥</div>
+                        <div style="position:absolute; left:35px; bottom:25px; font-size:24px; opacity:0.18; transform:rotate(-15deg); font-weight:900; color:#222; font-style:italic;">BOOM!</div>
+                        <div style="position:absolute; right:35px; top:115px; font-size:20px; opacity:0.15; transform:rotate(12deg); font-weight:900; color:#222; font-style:italic;">HA~</div>
+                    </div>
+                `;
+						} else if (categoryId === 3) {
+							// 🎧 音频
+							badgeText = '音频';
+							subText = `流媒体音频 ｜ 聆听精彩有声世界`;
+							actionBtnText = '打开 APP 聆听完整音频';
+							playerHtml = `
+                    <div class="audio-player-mock" onclick="triggerAppWakeup()">
+                        <img class="audio-cover" src="${book.cover_image_url}" alt="音频封面">
+                        <div class="audio-mid-controls">
+                            <div class="audio-play-circle"></div>
+                            <div class="audio-time-mock">01:24 / 12:35</div>
+                        </div>
+                        <div class="audio-wave-container">
+                            <div class="wave-bar"></div><div class="wave-bar"></div>
+                            <div class="wave-bar"></div><div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                        </div>
+                    </div>
+                `;
+						} else if (categoryId === 4) {
+							// 🎬 视频
+							badgeText = '视频';
+							subText = `更新至第 ${book.page_count || '1'} 讲 ｜ 精彩视频呈现`;
+							actionBtnText = '打开 APP 观看完整视频';
+							playerHtml = `
+                    <div class="video-player-mock" onclick="triggerAppWakeup()">
+                        <img class="video-poster" src="${book.cover_image_url}" alt="视频封面">
+                        <div class="video-play-center"></div>
+                        <div class="video-controls-mock">
+                            <span class="v-play-icon">▶</span>
+                            <span class="v-time">00:00 / 18:45</span>
+                            <div class="v-progress-bar"><div class="v-progress-current"></div></div>
+                            <span class="v-fullscreen">🔲</span>
+                        </div>
+                    </div>
+                `;
+						}
+
+						// 正常模板拼装
+						dynamicContent.innerHTML = `
+                ${playerHtml}
+                <div class="course-info-box">
+                    <div>
+                        <span class="badge-tag">${badgeText}</span>
+                        <h1 class="course-title">${book.name}</h1>
+                    </div>
+                    <div class="course-sub">${subText}</div>
+                    <div class="course-author">作者/团队：${book.author_name || '少年越读专家团'}</div>
+                </div>
+                <div class="intro-section">
+                    <h2 class="section-title">内容简介</h2>
+                    <div class="intro-content">${book.content_description || '暂无详细介绍'}</div>
+                </div>
+                <div class="fixed-bottom-bar">
+                    <button class="download-action-btn" onclick="triggerAppWakeup()">${actionBtnText}</button>
+                </div>
+            `;
+					} else {
+						// 其他未知code异常兜底
+						dynamicContent.innerHTML =
+							`<div class="status-loading" style="color:red;">❌ 数据加载失败: ${resData.response.msg}</div>`;
+					}
+				} catch (error) {
+					dynamicContent.innerHTML =
+						`<div class="status-loading" style="color:red;">❌ 请求异常: ${error.message}</div>`;
+				}
+			}
+
+			// ==========================================
+			// 🛡️ 高情商渲染：把受限页面转化为高质量全能引流墙
+			// ==========================================
+			function renderExpiredSafetyUI() {
+				const dynamicContent = document.getElementById('dynamicContent');
+				dynamicContent.innerHTML = `
+        <div class="expired-wrapper">
+            <div class="expired-badge-box">📦</div>
+            <h2 class="expired-title">该分享已移入宝藏库</h2>
+            <p class="expired-desc">由于安全验证或链接时效过期，当前单页已功成身退。<br>点击下方进入APP，即可解锁更全面、更丰富的正版内容！</p>
+            
+            <div class="app-benefit-grid">
+                <div class="benefit-card">
+                    <span class="benefit-icon">📚</span>
+                    <div class="benefit-info">
+                        <h4>名著课外书</h4>
+                        <p>10万+正版少年读物</p>
+                    </div>
+                </div>
+                <div class="benefit-card">
+                    <span class="benefit-icon">🔥</span>
+                    <div class="benefit-info">
+                        <h4>高能热血漫</h4>
+                        <p>解压放松超全连载</p>
+                    </div>
+                </div>
+                <div class="benefit-card">
+                    <span class="benefit-icon">🎧</span>
+                    <div class="benefit-info">
+                        <h4>名师有声课</h4>
+                        <p>随时随地随心聆听</p>
+                    </div>
+                </div>
+                <div class="benefit-card">
+                    <span class="benefit-icon">🎬</span>
+                    <div class="benefit-info">
+                        <h4>精彩大视频</h4>
+                        <p>沉浸体验名师精讲</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="fixed-bottom-bar">
+            <button class="download-action-btn pulse" onclick="triggerAppWakeup()">打开少年越读 APP 解锁全部</button>
+        </div>
+    `;
+			}
+
+			// APP唤醒中枢
+			function triggerAppWakeup() {
+				window.location.href = "shaonianyuedu://open";
+				setTimeout(() => {
+					if (!document.hidden) {
+						window.location.href = "https://a.app.qq.com/o/simple.jsp?pkgname=你的应用包名";
+					}
+				}, 2000);
+			}
+		</script>
+
+	</body>
+</html>

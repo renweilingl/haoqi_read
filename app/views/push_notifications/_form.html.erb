@@ -1,0 +1,159 @@
+<%= form_for(@push_notification, url: @push_notification.new_record? ? :push_notifications : :push_notification,method: @push_notification.new_record? ? :post : :put, :html => {:class => "layui-form"}) do |f| %> 
+  <div class="layui-form-item">
+    <label class="layui-form-label"><span class="required">*</span>推送类型</label>
+    <div class="layui-input-inline" style="width: 400px;">
+      <%= f.select :push_type, 
+        options_for_select([['系统通知', 'system_notification'], ['活动通知', 'activity_notification']], @push_notification.push_type),
+        { prompt: '请选择推送类型' }, 
+        { class: 'layui-input', lay_verify: 'required' } %>
+    </div>
+  </div>
+          
+  <div class="layui-form-item">
+    <label class="layui-form-label"><span class="required">*</span>标题</label>
+    <div class="layui-input-inline" style="width: 400px;">
+      <%= f.text_field :title, placeholder: '请输入推送标题',  maxlength: 20,  class: 'layui-input', lay_verify: 'required',  autocomplete: 'off' %>
+    </div>
+    <div class="layui-form-mid layui-word-aux"><span id="title-count">0</span>/20</div>
+  </div>
+          
+  <div class="layui-form-item">
+    <label class="layui-form-label"><span class="required">*</span>正文</label>
+    <div class="layui-input-inline" style="width: 400px;">
+      <%= f.text_area :body, placeholder: '请输入推送正文内容', maxlength: 50,  style: 'height: 80px;', class: 'layui-textarea',  lay_verify: 'required', autocomplete: 'off' %>
+    </div>
+    <div class="layui-form-mid layui-word-aux"><span id="body-count">0</span>/50</div>
+  </div>
+          
+  <div class="layui-form-item">
+    <label class="layui-form-label">跳转链接</label>
+    <div class="layui-input-inline" style="width: 400px;">
+      <%= f.url_field :link_url,
+          placeholder: 'https://...',
+          class: 'layui-input',
+          autocomplete: 'off' %>
+    </div>
+    <div class="layui-form-mid layui-word-aux">选填，点击推送后的跳转地址</div>
+  </div>
+          
+  <hr class="layui-border-green" style="margin: 16px 0; opacity: 0.3;">
+  <div style="font-size: 15px; font-weight: 600; color: #1f2937; margin-bottom: 16px;">推送范围</div>
+  <div class="layui-form-item">
+    <label class="layui-form-label"><span class="required">*</span>推送范围</label>
+    <div class="layui-input-inline" style="width: 400px;">
+      <select name="push_notification[push_scope]" id="push-scope-select" lay-verify="required" lay-filter="push-scope-filter">
+        <% [["all_users", "所有用户"],["age_range", "指定年级"]].each do |x| %>
+          <option value="<%= x[0] %>" <%= @push_notification.push_scope == x[0] ? 'selected' : '' %>><%= x[1] %></option>
+        <% end %>
+      </select>
+    </div>
+  </div>
+          
+  <div class="layui-form-item age-range-fields" style="display: none;" id="age-range-wrapper">
+    <label class="layui-form-label">指定年级<span style="color: red;">*</span></label>
+    <div class="layui-input-block">
+      <div class="grade-checkbox" id="grade-checkbox">
+        <% Grade.all.each do |grade| %>
+          <input type="checkbox" name="push_notification[grade_ids][]" value=<%= grade.id %> title="<%= grade.name %>" <%= 'checked' if @push_notification.grade_ids.include?(grade.id) %> />
+        <% end %>
+      </div>
+    </div>
+  </div>
+          
+  <div class="layui-form-item specific-user-fields" style="display: none;" id="user-group-wrapper">
+    <label class="layui-form-label">用户群体</label>
+    <div class="layui-input-inline" style="width: 400px;">
+      <%= f.text_area :user_group, placeholder: '请输入用户ID，多个用逗号分隔', style: 'height: 60px;', class: 'layui-textarea', autocomplete: 'off' %>
+    </div>
+    <div class="layui-form-mid layui-word-aux">输入用户ID，多个用英文逗号分隔</div>
+  </div>
+          
+  <hr class="layui-border-green" style="margin: 16px 0; opacity: 0.3;">
+  <div style="font-size: 15px; font-weight: 600; color: #1f2937; margin-bottom: 16px;">推送时间</div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">推送方式</label>
+    <div class="layui-input-block">
+      <input type="radio" name="push_mode" value="immediate" title="立即推送" checked lay-filter="pushMode">
+      <input type="radio" name="push_mode" value="scheduled" title="定时推送" lay-filter="pushMode">
+    </div>
+  </div>
+          
+  <div class="layui-form-item scheduled-time-fields" style="display: none;">
+    <label class="layui-form-label">定时时间</label>
+    <div class="layui-input-inline" style="width: 400px;">
+      <%= f.datetime_local_field :scheduled_at, class: 'layui-input', autocomplete: 'off' %> 
+    </div>
+    <div class="layui-form-mid layui-word-aux">选择定时推送的时间</div>
+  </div>
+          
+  <hr class="layui-border-green" style="margin: 16px 0; opacity: 0.3;">
+  <div class="layui-form-item">
+    <div class="layui-input-block">
+      <button type="submit" class="layui-btn layui-bg-blue" lay-submit lay-filter="submit-content">
+        <i class="layui-icon layui-icon-release"></i>提交保存
+      </button>
+      <%= link_to '取消', push_notifications_path, class: 'layui-btn layui-btn-primary' %>
+    </div>
+  </div>
+<% end %>
+
+<style>
+  .required { color: #ff5722; margin-right: 3px; }
+</style>
+
+<script>
+  layui.use(['form'], function(){
+    var form = layui.form,
+      $ = layui.$;
+
+    form.on('select(scopeFilter)', function(data) {
+      var val = data.value;
+  
+      document.querySelector('.age-range-fields').style.display = val === 'age_range' ? '' : 'none';
+      document.querySelector('.specific-user-fields').style.display = val === 'specific_users' ? '' : 'none';
+    })
+
+    form.on('radio(pushMode)', function(data) {
+      var val = data.value;
+      document.querySelector('.scheduled-time-fields').style.display = data.value === 'scheduled' ? '' : 'none';
+    });
+
+
+    // 推送范围切换
+    form.on('select(push-scope-filter)', function(data) {
+      var value = data.value;
+      $('#age-range-wrapper').hide();
+      $('#user-group-wrapper').hide();
+
+      if (value === 'age_range') {
+        $('#age-range-wrapper').show();
+      } else if (value === 'specific_users') {
+        $('#user-group-wrapper').show();
+      }
+      form.render();
+    });
+  })
+
+  document.querySelector('input[name="push_notification[title]"]')?.addEventListener('input', function() {
+    document.getElementById('title-count').textContent = this.value.length;
+  });
+  
+  document.querySelector('textarea[name="push_notification[body]"]')?.addEventListener('input', function() {
+    document.getElementById('body-count').textContent = this.value.length;
+  });
+
+  var pushScope = $('#push-scope-select').val();
+  if (pushScope === 'age_range') {
+    $('#age-range-wrapper').show();
+  } else if (pushScope === 'specific_users') {
+    $('#user-group-wrapper').show();
+  }
+
+  // 初始化统计
+  setTimeout(function() {
+    var titleInput = document.querySelector('input[name="push_notification[title]"]');
+    var bodyInput = document.querySelector('textarea[name="push_notification[body]"]');
+    if (titleInput) document.getElementById('title-count').textContent = titleInput.value.length;
+    if (bodyInput) document.getElementById('body-count').textContent = bodyInput.value.length;
+  }, 100);
+</script>

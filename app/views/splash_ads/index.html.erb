@@ -1,0 +1,119 @@
+<div class="layui-tab">
+  <div class="x-nav">
+    <span class="layui-breadcrumb">
+      <a href="">运营工具</a>
+      <a><cite>开屏广告管理</cite></a>
+    </span>
+    <%= render 'common/user_info' %>
+  </div>
+
+  <div class="x-body">
+    <div class="layui-row">
+      <div class="layui-col-xs9">
+        <%= search_form_for(@q, url: :splash_ads, :html => {class: :'layui-form layui-col-md12', style: "margin-bottom: 10px;"}) do |f| %>
+          <div class="layui-input-inline" style="width: 180px;">
+            <%= f.select :status_eq, options_for_select([['草稿', 'draft'], ['投放中', 'active'], ['已过期', 'expired'], ['已停用', 'disabled']], @q.link_type_eq), { include_blank: "所有状态" } %>
+          </div>
+
+          <div class="layui-input-inline" style="width: 180px;">
+            <%= f.select :link_type_eq, options_for_select([['单本书', 'single_book'], ['图书分类', 'category']], @q.link_type_eq), { include_blank: "链接类型" } %>
+          </div>
+          <button class="layui-btn layui-bg-blue" lay-submit><i class="layui-icon">&#xe615;</i>查询</button>
+          <%= link_to "重置", :splash_ads, class: "layui-btn layui-btn-primary" %>
+        <% end %>
+      </div>
+
+      <div class="layui-col-xs3 text-right">
+        <%= link_to :new_splash_ad, class: 'layui-btn layui-bg-blue' do %>
+          <i class="layui-icon"></i>新增广告
+        <% end %>
+      </div>
+    </div>
+
+    <!--table class="layui-table" lay-size="sm"-->
+    <table class="layui-table">
+      <thead>
+        <tr>
+          <th style="width: 50px;">ID</th>
+          <th>链接类型</th>
+          <th>推送范围</th>
+          <th>推送方式</th>
+          <th>投放时间</th>
+          <th>状态</th>
+          <th>发送数</th>
+          <th>点击数</th>
+          <th>点击率</th>
+          <th width="160" style="text-align:center;">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @splash_ads.each do |ad| %>
+        <tr>
+          <td><%= ad.id %></td>
+          <td><%= ad.link_type_name %></td>
+          <td><%= ad.push_scope_name %></td>
+          <td><%= ad.push_mode_name %></td>
+          <td style="font-size: 12px;"><%= ad.time_range_display %></td>
+          <td>
+            <%
+              status_class = case ad.status
+              when 'draft' then 'layui-bg-gray'
+              when 'scheduled' then 'layui-bg-blue'
+              when 'active' then 'layui-bg-green'
+              when 'expired' then 'layui-bg-orange'
+              when 'disabled' then 'layui-bg-red'
+              end
+            %>
+            <span class="layui-badge <%= status_class %>"><%= ad.status_name %></span>
+          </td>
+          <td><%= ad.send_count %></td>
+          <td><%= ad.click_count %></td>
+          <td><%= ad.click_rate_display %></td>
+          <td style="text-align:center;">
+            <div class="layui-btn-group">
+              <%= link_to '查看', splash_ad_path(ad), class: 'layui-btn layui-btn-sm layui-btn-normal' %>
+              <% if policy(ad).edit? %>
+                <%= link_to '编辑', edit_splash_ad_path(ad), class: 'layui-btn layui-btn-sm' %>
+              <% end %>
+              <% if ad.can_publish? && policy(ad).publish? %>
+                <button class="layui-btn layui-btn-sm layui-btn-warm" onclick="publishAd(<%= ad.id %>)">发布</button>
+              <% end %>
+            </div>
+          </td>
+        </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+  </div>
+</div>
+
+<script>
+layui.use(['form', 'layer'], function() {
+  var form = layui.form;
+  var layer = layui.layer;
+});
+
+// 发布广告
+function publishAd(id) {
+  layui.layer.confirm('确定要发布该广告吗？', function(index) {
+    $.ajax({
+      url: '/splash_ads/' + id + '/publish',
+      type: 'POST',
+      success: function(res) {
+        if (res.success) {
+          layui.layer.msg('发布成功', { icon: 1 }, function() {
+            location.reload();
+          });
+        } else {
+          layui.layer.msg(res.errors ? res.errors.join(', ') : '发布失败', { icon: 2 });
+        }
+      },
+      error: function() {
+        layui.layer.msg('发布失败', { icon: 2 });
+      }
+    });
+    layui.layer.close(index);
+  });
+}
+</script>

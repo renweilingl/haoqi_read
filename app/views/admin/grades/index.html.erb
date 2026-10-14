@@ -1,0 +1,79 @@
+<div class="layui-tab">                                                          
+  <div class="x-nav">
+    <span class="layui-breadcrumb">                                              
+      <a href="">内容管理</a>
+      <a><cite>年级管理</cite></a>
+    </span>
+    <%= render 'common/user_info' %>
+  </div>
+
+  <div class="x-body">
+    <% if false %>
+    <div class="layui-row">
+      <div class="layui-col-3 text-right">
+        <%= link_to :new_admin_grade, class: 'layui-btn layui-bg-blue' do %>
+          <i class="layui-icon"></i>新增年级
+        <% end %>
+      </div>
+    </div>
+    <% end %>
+
+    <table class="layui-table">
+      <thead>
+        <tr>
+          <th width="80">ID</th>
+          <th>组名</th>
+          <th>名称</th>
+          <th>年龄段</th>
+          <th width="180" style="text-align:center;">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @grades.each do |grade| %>
+          <tr>
+            <td><%= grade.id %></td>
+            <td><%= grade.group_name %></td>
+            <td><%= grade.name %></td>
+            <td><%= grade.description %></td>
+            <td style="text-align:center;">
+              <div class="layui-btn-group">
+                <%= link_to '编辑', edit_admin_grade_path(grade), class: "layui-btn layui-btn-sm" %>
+                <%= link_to '推荐内容 ', admin_grade_recommends_path(grade), class: "layui-btn layui-btn-sm" %>
+                <%#= link_to '删除', admin_grade_path(grade), method: :delete, class: "layui-btn layui-btn-sm", title: "删除", data: { confirm: "确定要删除此分类吗？此操作不可恢复。" } %>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+    <% if @grades.total_pages > 1 %>
+      <div id="pagination" style="margin-top: 20px;"></div>
+    <% end %>
+  </div>
+</div>
+
+<script>
+  layui.use(['laypage', 'layer'], function(){
+    var laypage = layui.laypage,
+        layer = layui.layer;
+
+    <% if @grades.total_pages > 1 %>
+    laypage.render({
+      elem: 'pagination',
+      count: <%= @grades.total_entries %>,
+      limit: <%= @grades.per_page %>,
+      curr: <%= @grades.current_page %>,
+      layout: ['count', 'prev', 'page', 'next', 'limit', 'skip'],
+      jump: function(obj, first){
+        if(!first){
+          var url = new URL(window.location.href);
+          url.searchParams.set('page', obj.curr);
+          url.searchParams.set('per_page', obj.limit);
+          window.location.href = url.toString();
+        }
+      }
+    });
+    <% end %>
+  })
+</script>
