@@ -92,16 +92,6 @@ ActiveRecord::Schema[7.1].define(version: 2026_10_10_000000) do
     t.bigint "supplier_id", comment: "归属供应商"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.bigint "book_level_id"
-    t.bigint "author_id"
-    t.bigint "compilations"
-    t.string "file_url"
-    t.string "file_name"
-    t.string "file_type"
-    t.boolean "is_free", default: false
-    t.text "content_description"
-    t.string "broadcaster", default: ""
-    t.boolean "is_published", default: false
     t.integer "page_count", default: 0, null: false, comment: "电子书总页数"
     t.integer "import_status", default: 0, null: false, comment: "电子书导入状态"
     t.string "source_pdf_filename", comment: "源 PDF 文件名"
@@ -109,7 +99,11 @@ ActiveRecord::Schema[7.1].define(version: 2026_10_10_000000) do
     t.string "ebook_checksum", comment: "源 PDF 校验值"
     t.datetime "imported_at", comment: "导入完成时间"
     t.text "import_error_message", comment: "导入失败信息"
+    t.bigint "book_level_id"
+    t.bigint "author_id"
+    t.bigint "compilations"
     t.integer "content_type", default: 0, null: false, comment: "类型：0-电子书 1-有声 2-视频 3-绘本"
+    t.boolean "is_free", default: false, null: false, comment: "是否免费"
     t.boolean "is_vip", default: false, null: false, comment: "是否VIP"
     t.bigint "grade_id", comment: "年级ID"
     t.integer "play_count", default: 0, null: false, comment: "播放/阅读次数"
@@ -126,6 +120,12 @@ ActiveRecord::Schema[7.1].define(version: 2026_10_10_000000) do
     t.string "content_file_url", comment: "电子书内容文件URL"
     t.string "content_file_type", comment: "内容文件类型 (epub/pdf)"
     t.string "content_file_name", comment: "内容文件名"
+    t.string "file_url"
+    t.string "file_name"
+    t.string "file_type"
+    t.text "content_description"
+    t.string "broadcaster", default: ""
+    t.boolean "is_published", default: false
     t.bigint "media_id"
     t.index ["category_id"], name: "index_books_on_category_id"
     t.index ["import_status"], name: "index_books_on_import_status"
@@ -285,7 +285,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_10_10_000000) do
 
   create_table "daily_channel_stats", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.string "stat_date", null: false, comment: "统计日期 YYYY-MM-DD"
-    t.string "channel", limit: 32, comment: "渠道（NULL=全部）"
+    t.string "channel", limit: 32, default: "", null: false, comment: "渠道（空字符串=全部）"
     t.integer "registrations", default: 0, comment: "当日注册量"
     t.integer "active_users", default: 0, comment: "当日活跃用户数"
     t.integer "paid_users", default: 0, comment: "当日付费用户数"
@@ -339,7 +339,6 @@ ActiveRecord::Schema[7.1].define(version: 2026_10_10_000000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "image_url", comment: "页面图片URL（PDF导入）"
-    t.boolean "is_free", default: false
     t.index ["book_id", "page_number"], name: "index_ebook_pages_on_book_id_and_page_number", unique: true
     t.index ["book_id"], name: "index_ebook_pages_on_book_id"
   end
@@ -395,7 +394,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_10_10_000000) do
   end
 
   create_table "orders", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", comment: "订单表", force: :cascade do |t|
-    t.integer "app_user_id", null: false, comment: "用户ID"
+    t.integer "user_id", null: false, comment: "用户ID"
     t.string "order_no", null: false, comment: "订单号"
     t.decimal "amount", precision: 10, scale: 2, null: false, comment: "金额"
     t.integer "payment_method", default: 0, null: false, comment: "支付方式：0-支付宝 1-微信"
@@ -406,11 +405,11 @@ ActiveRecord::Schema[7.1].define(version: 2026_10_10_000000) do
     t.datetime "updated_at", null: false
     t.string "channel", limit: 32, comment: "支付渠道（继承自用户）"
     t.bigint "package_id"
-    t.index ["app_user_id"], name: "index_orders_on_user_id"
     t.index ["membership_id"], name: "index_orders_on_membership_id"
     t.index ["order_no"], name: "index_orders_on_order_no", unique: true
     t.index ["package_id"], name: "index_orders_on_package_id"
     t.index ["status"], name: "index_orders_on_status"
+    t.index ["user_id"], name: "index_orders_on_user_id"
   end
 
   create_table "packages", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
@@ -535,7 +534,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_10_10_000000) do
 
   create_table "user_analytics_daily", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.string "stat_date", null: false, comment: "日期 YYYY-MM-DD"
-    t.string "channel", limit: 32, comment: "渠道（NULL=全部）"
+    t.string "channel", limit: 32, default: "", null: false, comment: "渠道（空字符串=全部）"
     t.integer "dau", default: 0, comment: "日活"
     t.integer "wau", default: 0, comment: "周活"
     t.integer "mau", default: 0, comment: "月活"
@@ -553,11 +552,11 @@ ActiveRecord::Schema[7.1].define(version: 2026_10_10_000000) do
     t.string "name"
     t.string "crypted_password"
     t.string "salt"
-    t.string "role", default: "editor", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "remember_me_token"
     t.datetime "remember_me_token_expires_at"
+    t.string "role", default: "editor", null: false
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["remember_me_token"], name: "index_users_on_remember_me_token"
     t.index ["role"], name: "index_users_on_role"
@@ -570,7 +569,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_10_10_000000) do
   add_foreign_key "category_sub_books", "books", on_delete: :cascade
   add_foreign_key "category_sub_books", "category_subs", on_delete: :cascade
   add_foreign_key "category_subs", "categories"
-  add_foreign_key "chapters", "books"
+  add_foreign_key "chapters", "books", on_delete: :cascade
   add_foreign_key "compilation_books", "books", on_delete: :cascade
   add_foreign_key "compilation_books", "compilations", on_delete: :cascade
   add_foreign_key "compilation_categories", "categories"
@@ -581,7 +580,6 @@ ActiveRecord::Schema[7.1].define(version: 2026_10_10_000000) do
   add_foreign_key "contents", "content_groups"
   add_foreign_key "ebook_pages", "books"
   add_foreign_key "push_notification_grades", "push_notifications"
-  add_foreign_key "recommends", "grades"
   add_foreign_key "splash_ad_grades", "splash_ads"
   add_foreign_key "splash_ads", "books"
 end
