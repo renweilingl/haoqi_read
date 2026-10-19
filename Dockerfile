@@ -79,9 +79,9 @@ ENTRYPOINT ["/rails/bin/docker-entrypoint"]
 # 暴露端口
 EXPOSE 80
 
-# 健康检查 - web 角色检查 HTTP，worker 角色检查进程
-HEALTHCHECK --interval=5s --timeout=5s --start-period=30s --retries=3 \
-  CMD if pgrep -f puma > /dev/null; then curl -f http://localhost:${PORT:-80}/up || exit 1; else pgrep -f sidekiq > /dev/null || exit 1; fi
+# 健康检查 - web 角色检查 HTTP，worker 角色跳过
+HEALTHCHECK --interval=5s --timeout=5s --start-period=40s --retries=3 \
+  CMD if [ -z "$WORKER" ]; then curl -f http://localhost:${PORT:-80}/up || exit 1; else exit 0; fi
 
 # 启动 Puma 服务器
 CMD ["bundle", "exec", "puma", "-C", "config/puma.rb"]

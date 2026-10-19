@@ -12,7 +12,7 @@ servers:
   worker:
     hosts:
       - 47.96.81.46
-    cmd: "bundle exec sidekiq -C config/sidekiq.yml"
+    cmd: "bash -c 'WORKER=true exec bundle exec sidekiq -C config/sidekiq.yml'"
     proxy: false
 
 # ==================== 部署超时 ====================
