@@ -13,11 +13,11 @@ default: &default
 
 development:
   <<: *default
-  database: zheli_read_development
+  database: haoqi_read_development
 
 test:
   <<: *default
-  database: zheli_read_test
+  database: haoqi_read_test
 
 production:
   <<: *default

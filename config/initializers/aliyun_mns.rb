@@ -181,7 +181,7 @@ class AliyunMnsConfig
       endpoint: ENV.fetch("ALIYUN_MNS_ENDPOINT"),
       access_key_id: ENV.fetch("ALIYUN_ACCESS_KEY_ID"),
       access_key_secret: ENV.fetch("ALIYUN_ACCESS_KEY_SECRET"),
-      queue_name: ENV.fetch("ALIYUN_MNS_QUEUE_NAME", "zheli_read_queue")
+      queue_name: ENV.fetch("ALIYUN_MNS_QUEUE_NAME", "haoqi_read_queue")
     )
   end
 end
