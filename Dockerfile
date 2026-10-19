@@ -79,5 +79,9 @@ ENTRYPOINT ["/rails/bin/docker-entrypoint"]
 # 暴露端口
 EXPOSE 80
 
+# 健康检查
+HEALTHCHECK --interval=5s --timeout=5s --start-period=30s --retries=3 \
+  CMD curl -f http://localhost:${PORT:-80}/up || exit 1
+
 # 启动 Puma 服务器
 CMD ["bundle", "exec", "puma", "-C", "config/puma.rb"]
