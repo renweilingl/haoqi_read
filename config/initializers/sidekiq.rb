@@ -32,7 +32,7 @@ end
 sidekiq_url = build_sidekiq_redis_url
 
 Sidekiq.configure_server do |config|
-  config.redis = { url: sidekiq_url, protocol: 2 }
+  config.redis = { url: sidekiq_url }
 
   log_path = Rails.root.join('log/sidekiq.log')
   FileUtils.mkdir_p(log_path.dirname)
@@ -41,5 +41,5 @@ Sidekiq.configure_server do |config|
 end
 
 Sidekiq.configure_client do |config|
-  config.redis = { url: sidekiq_url, protocol: 2 }
+  config.redis = { url: sidekiq_url }
 end

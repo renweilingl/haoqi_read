@@ -40,7 +40,7 @@ gem 'jquery-rails'
 
 gem 'ransack'
 
-gem "sidekiq", "~> 7.0"
+gem "sidekiq", "~> 6.5"
 gem "connection_pool", "~> 2.4"
 gem 'redis-namespace'
 
