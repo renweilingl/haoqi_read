@@ -4,7 +4,7 @@ class PushJob < ApplicationJob
 
   def perform(push_notification_id)
     if Rails.env.production?
-      url = "https://api.zheliyuedu.cn/api/push/send"
+      url = "https://bookapi.haoqiniu.com/api/push/send"
 
       pn = PushNotification.find push_notification_id
 
