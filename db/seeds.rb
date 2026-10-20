@@ -70,12 +70,12 @@ puts '测试财务: finance@zheli.com / finance123456'
  { group_name: '高中', name: '高中', description: '15-18岁' }].each do |x|
   next if Grade.exists?(name: x[:name])
 
-  max_level = Grade.maximum(:level).to_i
+#  max_level = Grade.maximum(:level).to_i
   Grade.create(
     group_name: x[:group_name],
     name: x[:name],
     description: x[:description],
-    level: max_level + 1
+#    level: max_level + 1
   )
 end
 
