@@ -1,7 +1,7 @@
 # Kamal secrets
 .kamal
-
 config/yetting.yml
+env.sh
 config/credentials.yml.enc
 shared
 tmp
