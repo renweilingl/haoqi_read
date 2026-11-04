@@ -82,7 +82,8 @@ end
 [{ name: '图书', code: 'book' },
  { name: '漫画', code: 'cartoon' },
  { name: '有声', code: 'audio' },
- { name: '视频', code: 'video' }].each do |x|
+ { name: '视频', code: 'video' },
+ { name: '绘本', code: 'picture_book' }].each do |x|
   name = x[:name]
   code = x[:code]
   if Category.where(name: name).empty?
