@@ -57,13 +57,6 @@ class Admin::CompilationsController < ApplicationController
     authorize Compilation
 
     @books = @compilation.books.includes(:category)
-
-    #book_ids = []
-    #@compilation.grades.each do |grade|
-    #  book_ids  += grade.book_ids
-    #end
-    #book_ids.uniq!
-    #@books = Book.where(id: book_ids)
   end
 
   def update_books
