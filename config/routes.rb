@@ -21,6 +21,7 @@ Rails.application.routes.draw do
       post :upload_img
       post :upload_open_img
       post :upload_media
+      post 'json_file'
     end
   end
 
@@ -91,10 +92,6 @@ Rails.application.routes.draw do
     # Collections management (绘本合辑)
     resources :compilations, only: [:index, :show, :new, :create, :edit, :update, :destroy] do
       resources :books
-      #member do
-      #  get 'books'
-      #  post 'update_books'
-      #end
     end
 
     resources :picture_books do
@@ -122,6 +119,9 @@ Rails.application.routes.draw do
       end
       post 'auto_sort', on: :member
     end
+
+    #绘本
+    resources :books
   end
 
   namespace :operator do

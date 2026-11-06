@@ -1,6 +1,12 @@
 class FilesController < ApplicationController
   before_action :require_login
 
+  def json_file
+    file = params[:file]
+    content = File.read(file.path)
+    render json: {code: 0, content: content}
+  end
+
   def upload_media
     file = params[:file]
 
