@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_11_06_081302) do
+ActiveRecord::Schema[7.1].define(version: 2026_11_09_011515) do
   create_table "app_users", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.string "nickname"
     t.string "avatar"
@@ -65,6 +65,20 @@ ActiveRecord::Schema[7.1].define(version: 2026_11_06_081302) do
     t.string "head_img", comment: "头像"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "book_contents", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
+    t.bigint "book_id"
+    t.string "img_path"
+    t.string "name"
+    t.string "start_at"
+    t.string "deal_at"
+    t.integer "sn"
+    t.integer "height"
+    t.integer "width"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["book_id"], name: "index_book_contents_on_book_id"
   end
 
   create_table "book_grades", id: false, charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|

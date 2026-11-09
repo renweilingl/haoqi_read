@@ -121,7 +121,9 @@ Rails.application.routes.draw do
     end
 
     #绘本
-    resources :books
+    resources :books do
+      get 'contents', on: :member
+    end
   end
 
   namespace :operator do

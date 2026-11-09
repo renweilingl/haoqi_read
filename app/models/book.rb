@@ -15,6 +15,7 @@ class Book < ApplicationRecord
   has_many :splash_ads, dependent: :destroy 
   has_many :rank_contents, dependent: :destroy 
   has_many :ebook_pages, dependent: :destroy 
+  has_many :book_contents, dependent: :destroy 
 
   # 验证
   validates :name, presence: true, length: { maximum: 100 }
