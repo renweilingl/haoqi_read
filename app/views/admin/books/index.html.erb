@@ -17,6 +17,8 @@
       <thead>
         <tr>
           <th>名称</th>
+          <th>年级范围</th>
+          <th>创建时间</th>
           <th width="120" style="text-align:center;">操作</th>
         </tr>
       </thead>
@@ -24,6 +26,8 @@
         <% @books.each do |x| %>
           <tr>
             <td><%= x.name %></td>
+            <td><%= x.grades.pluck(:name).join(" | ") %></td>
+            <td><%= x.created_at.strftime("%Y-%m-%d") %></td>
             <td style="text-align:center;">
               <div class="layui-btn-group">
                 <%= link_to "内容管理", contents_admin_book_path(x), class: "layui-btn layui-btn-sm layui-bg-blue" %>
