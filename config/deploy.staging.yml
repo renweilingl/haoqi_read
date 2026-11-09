@@ -1,8 +1,8 @@
 # Kamal 测试环境部署配置
 # 部署到测试服务器 8.136.142.85
 
-service: zheli_read-staging
-image: voicebook/zheli_read-staging
+service: haoqi_read-staging
+image: voicebook/haoqi_read-staging
 
 # ==================== 服务器配置 ====================
 servers:
@@ -58,8 +58,8 @@ builder:
 
 # ==================== 数据卷挂载 ====================
 volumes:
-  - /zheli_read-staging/log:/rails/log
-  - /zheli_read-staging/tmp:/rails/tmp
+  - /haoqi_read-staging/log:/rails/log
+  - /haoqi_read-staging/tmp:/rails/tmp
 
 # ==================== kamal-proxy 代理 ====================
 proxy:
