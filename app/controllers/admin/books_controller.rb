@@ -1,7 +1,7 @@
 class Admin::BooksController < ApplicationController
   include PictureBooksHelper
   before_action :require_login
-  before_action :get_resource, only: %i[edit update destroy contents multimedia]
+  before_action :get_resource, only: %i[edit update destroy contents multimedia batch_clean_contents]
 
   def index
     authorize Book
@@ -47,13 +47,18 @@ class Admin::BooksController < ApplicationController
         {id: r.id,                                                               
          name: r.name,                                                           
          sn: r.sn,                                                               
-         img_path: r.img_path,                                                   
+         img_path: FileMap.new(r.img_path, "img").secrity_src,
          start_at: r.start_at,                                                   
          deal_at: r.deal_at                                                      
         }                                                                        
       }                                                                          
       render json: {data: items, code: 0, count: resource.size}                  
     end
+  end
+
+  def batch_clean_contents
+    @book.book_contents.destroy_all
+    redirect_to contents_admin_book_path(@book)
   end
 
   def multimedia
