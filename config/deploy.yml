@@ -1,18 +1,22 @@
 # Kamal 部署配置
 # 用于将 ZheliRead 部署到阿里云服务器
 
-service: zheli_read
-image: voicebook/zheli_read
+service: haoqi_read
+image: voicebook/haoqi_read
 
 # ==================== 服务器配置 ====================
 servers:
   web:
     hosts:
-      - 8.136.142.85
+      - 47.96.81.46
   worker:
     hosts:
-      - 8.136.142.85
+      - 47.96.81.46
     cmd: "bundle exec sidekiq -C config/sidekiq.yml"
+    proxy: false
+    env:
+      clear:
+        WORKER: "true"
 
 # ==================== 部署超时 ====================
 # 数据库迁移时间较长，增加超时
@@ -31,6 +35,7 @@ registry:
 env:
   clear:
     RAILS_ENV: production
+    PORT: 80
     WEB_CONCURRENCY: 5
     RAILS_MAX_THREADS: 5
     TZ: Asia/Shanghai
@@ -64,7 +69,7 @@ ssh:
 # ==================== kamal-proxy 代理 ====================
 proxy:
   ssl: true
-  host: web.zheliyuedu.cn
+  host: bookweb.haoqiniu.com
   healthcheck:
     path: /up
     interval: 5
@@ -81,8 +86,8 @@ builder:
 
 # ==================== 数据卷挂载 ====================
 volumes:
-  - /zheli_read/log:/rails/log
-  - /zheli_read/tmp:/rails/tmp
+  - /haoqi_read/log:/rails/log
+  - /haoqi_read/tmp:/rails/tmp
 
 # ==================== 容器保留策略 ====================
 # 1.6GB 小内存服务器，减少旧版本保留数量，防止资源累积
