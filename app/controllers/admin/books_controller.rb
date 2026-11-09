@@ -35,6 +35,8 @@ class Admin::BooksController < ApplicationController
   end
 
   def edit
+    authorize @book
+    @suppliers = Supplier.all
   end
 
   def update

@@ -31,6 +31,10 @@ class Admin::OptionsController < ApplicationController
       @title = "选择视频"
       @name = "book_id"
       @opts = get_cat_books("视频")
+    when "picture_book"
+      @title = "选择绘本"
+      @name = "book_id"
+      @opts = get_cat_books("绘本")
     when "recommend"
       @title = "选择推荐"
       @name = "recommend_id"

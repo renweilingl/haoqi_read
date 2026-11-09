@@ -65,6 +65,7 @@
         <input type="radio" lay-filter="levelFilter" name="content_type" value="comic" title="漫画" <%= 'checked' if @content.content_type== "book" && @content.book.category.name == "漫画" %> <%= 'disabled' unless @content.new_record? %>>
         <input type="radio" lay-filter="levelFilter" name="content_type" value="audio" title="有声" <%= 'checked' if @content.content_type== "book" && @content.book.category.name == "有声" %> <%= 'disabled' unless @content.new_record? %>>
         <input type="radio" lay-filter="levelFilter" name="content_type" value="video" title="视频" <%= 'checked' if @content.content_type== "book" && @content.book.category.name == "视频" %> <%= 'disabled' unless @content.new_record? %>>
+        <input type="radio" lay-filter="levelFilter" name="content_type" value="picture_book" title="绘本" <%= 'checked' if @content.content_type== "picture_book" && @content.book.category.name == "绘本" %> <%= 'disabled' unless @content.new_record? %>>
       </div>
     </div>
 
