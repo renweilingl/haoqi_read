@@ -21,29 +21,39 @@ class Admin::BooksController < ApplicationController
   end
 
   def create
-    authorize Compilation
+    @book = Book.new(book_params)
+    authorize @book
+    @suppliers = Supplier.all
 
-    book_ids = @compilation.book_ids || []
-    if params[:book_ids].present?
-      params[:book_ids].each do |book_id|
-        book_ids << book_id.to_i unless book_ids.include? book_id.to_i
-      end
+    if @book.save
+      redirect_to :admin_books, notice: '绘本创建成功'
+    else
+      render :new
     end
-    @compilation.book_ids = book_ids
-    @compilation.save!
-
-    render json: {code: 0} 
   end
 
   def destroy
-    @compilation.book_ids = @compilation.book_ids - [params[:id].to_i]
-    @compilation.save!
-
-    redirect_to admin_compilation_books_path(@compilation)
+    #redirect_to admin_compilation_books_path(@compilation)
   end
 
   private
-  def set_compilation
-    @compilation  = Compilation.find(params[:compilation_id])
+  def book_params
+    params.require(:book).permit(
+      :name,
+      :cover_image_url,
+      :supplier_id,
+      :category_id,
+      :book_level_id,
+      :author_id,
+      :file_url,
+      :file_name,
+      :file_type,
+      :is_free,
+      :is_published,
+      :time_line,
+      :content_description,
+      :grade_ids => [],
+      :category_sub_ids => []
+    )
   end
 end
