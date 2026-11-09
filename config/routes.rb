@@ -123,7 +123,13 @@ Rails.application.routes.draw do
     #绘本
     resources :books do
       get 'contents', on: :member
+      post 'multimedia', on: :member
+      delete 'batch_clean_contents', on: :member
     end
+  end
+
+  resources :book_contents do
+    post 'update_timeline', on: :collection
   end
 
   namespace :operator do

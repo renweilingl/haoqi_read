@@ -1,0 +1,128 @@
+<div class="layui-tab">
+  <div class="x-nav">
+    <span class="layui-breadcrumb">
+      <%= link_to "绘本管理", :admin_books %>
+      <a><cite>内容管理</cite></a>
+    </span>
+    <%= render 'common/user_info' %>
+  </div>
+
+  <div class="x-body">
+
+    <%= form_for(@book, url: :multimedia_admin_book, method: :put, :html => {:class => "layui-form"}) do |f| %>
+      <input type="hidden" name="book_id" value=<%= @book.id %> >
+      <div class="layui-form-item">
+        <label class="layui-form-label">绘本名称</label>
+        <div class="layui-input-block">
+          <%= f.text_field :name, class: "layui-input", disabled: true %>
+        </div>
+      </div>
+
+      <input type="hidden" name="">
+      <div class="layui-form-item">
+        <label class="layui-form-label">添加新内容</label>
+        <div class="layui-input-block">
+          <div class="layui-upload-drag" style="display: block;" id="ID-upload-cover">
+            <i class="layui-icon layui-icon-upload"></i>
+            <div class="layui-hide" id="cover-img-preview">
+              <hr>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <div class="layui-row">
+      <div class="layui-col-xs9">
+      </div>
+      <div class="layui-col-3 text-right">
+        <%= link_to "删除所有内容", batch_clean_contents_admin_book_path(@book),  method: :delete, data: {confirm: '确认删除所有内容吗？'}, class: "layui-btn layui-bg-red" %>
+      </div>
+    </div>
+
+    <table class="layui-table" id="main-table"></table>
+  </div>
+</div>
+
+<script type="text/html" id="tool-wrapper">
+  <div class="layui-btn-group">
+    <a data-confirm="确认删除吗？" data-method="delete" href="/book_contents/{{d.id}}" class="layui-btn layui-btn-sm layui-bg-red">删除</a>
+  </div>
+</script>
+
+<script>
+  layui.use(['upload', 'table'],function(){
+    var table = layui.table;
+    table.render({
+      elem: '#main-table',
+      url: "/admin/books/" + "<%= @book.id %>" + "/contents",
+      page: {
+        layout: ['count', 'prev', 'page', 'next', 'limit', 'skip'],
+        limit: 90,
+        groups: 10,
+        theme: '#1E9FFF',
+        first: '首页',
+        last: '尾页',
+        prev: '上一页',
+        next: '下一页'
+      },
+      cols: [[
+        {field: 'sn', title: '序号', align: "center"},
+        {field: 'name', title: '文件名', align: "center"},
+        {field: 'img_path', align: "center", width: '16%', title: '图片', templet: function(d){
+          return '<img style="height: 100%;" src="' + d.img_path + '">';
+        }},
+        {field: 'start_at', title: '开始时间', align: "center", edit: "string"},
+        {field: 'deal_at', title: '结束时间', align: "center", edit: "string"},
+        {width: '10%', align: "center", title: '操作', templet: '#tool-wrapper'}
+      ]],
+    });
+
+    var layer = layui.layer;
+    var upload = layui.upload;
+    upload.render({
+      elem: '#ID-upload-cover',
+      url: "/admin/books/" + "<%= @book.id %>" + "/multimedia",
+      multiple: true,
+      accept: 'images',
+      before: function(obj){
+        obj.preview(function(index, file, result){
+          var img = '<img src="' + result + '" style="height: 100px;">';
+          $('#cover-img-preview').removeClass('layui-hide').append(img);
+        });
+      },
+      done: function(res){
+        if (res.code == 0) { //上传成功
+          layer.msg('上传成功');
+        }
+        else {
+           alert("上传失败！");
+        }
+      }
+    });
+
+    table.on('edit(main-table)', function(obj){
+      var value = obj.value // 得到修改后的值
+      var data = obj.data // 得到所在行所有键值
+      var field = obj.field; // 得到字段
+
+      $.ajax({
+        url: '/contents/update_timeline',
+        dataType: 'json',
+        type: 'post',
+        data: {id: data.id, start_at: data.start_at, deal_at: data.deal_at},
+        success: function(res) {
+          if(res.code == 0){
+             var update = {};
+             update[field] = value;
+             obj.update(update);
+             layer.msg('修改成功')
+          } else {
+            layer.msg('修改失败');
+          }
+        }
+      })
+    });
+  })
+</script>
+

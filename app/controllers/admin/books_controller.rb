@@ -1,5 +1,7 @@
 class Admin::BooksController < ApplicationController
+  include PictureBooksHelper
   before_action :require_login
+  before_action :get_resource, only: %i[edit update destroy contents multimedia]
 
   def index
     authorize Book
@@ -32,11 +34,51 @@ class Admin::BooksController < ApplicationController
     end
   end
 
+  def edit
+  end
+
+  def update
+  end
+
+  def contents
+    if request.xhr?                                                              
+      resource = @book.book_contents
+      items = resource.order("sn asc").paginate(page: params[:page], per_page: params[:limit]).collect {|r|                
+        {id: r.id,                                                               
+         name: r.name,                                                           
+         sn: r.sn,                                                               
+         img_path: r.img_path,                                                   
+         start_at: r.start_at,                                                   
+         deal_at: r.deal_at                                                      
+        }                                                                        
+      }                                                                          
+      render json: {data: items, code: 0, count: resource.size}                  
+    end
+  end
+
+  def multimedia
+    file = params[:file]
+    tmp_file_path = file.tempfile.path
+    mime = `file --brief --mime-type "#{tmp_file_path}"`.strip
+
+    uuid = SecureRandom.uuid.delete('-')
+    oss_path = AliyunOss.instance.put(uuid, File.open(file.path), {'content_type': mime})
+
+    @book.book_contents.create(img_path: oss_path, name: file.original_filename)
+
+    auto_sort_contents(@book.id)
+    render json: {code: 0}
+  end
+
   def destroy
     #redirect_to admin_compilation_books_path(@compilation)
   end
 
   private
+  def get_resource
+    @book = Book.find_by_id params[:id]
+  end
+
   def book_params
     params.require(:book).permit(
       :name,
