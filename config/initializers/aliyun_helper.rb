@@ -5,7 +5,7 @@ class AliyunOss
     config.aliyun_access_key = ENV["ALIYUN_ACCESS_KEY_SECRET"]
     config.aliyun_bucket     = ENV["ALIYUN_OSS_BUCKET"]
     config.aliyun_internal   = ENV["ALIYUN_OSS_INTERNAL"] == "true"
-    config.aliyun_area       = ENV["ALIYUN_OSS_ENDPOINT"]
+    config.aliyun_area       = ENV["ALIYUN_OSS_ENDPOINT"].to_s.sub(/^oss-/, '').sub(/\.aliyuncs\.com$/, '')
   end
 
   @uploader = CarrierWave::Uploader::Base.new
@@ -23,7 +23,7 @@ class AliyunOssOpen
     config.aliyun_access_key = ENV["ALIYUN_ACCESS_KEY_SECRET"]
     config.aliyun_bucket     = ENV["ALIYUN_OSS_BUCKET_OPEN"]
     config.aliyun_internal   = ENV["ALIYUN_OSS_INTERNAL"] == "true"
-    config.aliyun_area       = ENV["ALIYUN_OSS_ENDPOINT"]
+    config.aliyun_area       = ENV["ALIYUN_OSS_ENDPOINT"].to_s.sub(/^oss-/, '').sub(/\.aliyuncs\.com$/, '')
   end
 
   @uploader = CarrierWave::Uploader::Base.new
