@@ -69,7 +69,7 @@ class Admin::BooksController < ApplicationController
     mime = `file --brief --mime-type "#{tmp_file_path}"`.strip
 
     uuid = SecureRandom.uuid.delete('-')
-    oss_path = AliyunOss.instance.put(uuid, File.open(file.path), {'content_type': mime})
+    oss_path = AliyunOss.instance.put(uuid, File.read(tmp_file_path), {'content_type': mime})
 
     @book.book_contents.create(img_path: oss_path, name: file.original_filename)
 

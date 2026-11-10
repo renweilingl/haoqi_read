@@ -121,7 +121,7 @@ class FilesController < ApplicationController
     tmp_file_path = file.tempfile.path
     mime = `file --brief --mime-type "#{tmp_file_path}"`.strip
 
-    oss_path = AliyunOss.instance.put(new_filename, File.open(file.path), {'content_type': mime})
+    oss_path = AliyunOss.instance.put(new_filename, File.read(file.tempfile.path), {'content_type': mime})
 
     render json: {
       success: true,
@@ -158,7 +158,7 @@ class FilesController < ApplicationController
     tmp_file_path = file.tempfile.path
     mime = `file --brief --mime-type "#{tmp_file_path}"`.strip
 
-    oss_path = AliyunOssOpen.instance.put(new_filename, File.open(file.path), {'content_type': mime})
+    oss_path = AliyunOssOpen.instance.put(new_filename, File.read(tmp_file_path), {'content_type': mime})
 
     render json: {
       success: true,
