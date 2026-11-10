@@ -53,7 +53,7 @@
               $('#previewImg').attr('src', res.preivew_url).show();
               layer.msg('上传成功', {icon: 1});
             } else {
-              layer.msg(res.error || '上传失败', {icon: 2});
+              layer.msg(res.message || '上传失败', {icon: 2});
             }
           },
           error: function(){
