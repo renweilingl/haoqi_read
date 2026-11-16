@@ -40,6 +40,9 @@ class Admin::BooksController < ApplicationController
   end
 
   def update
+    @book.update(book_params)
+    identify_time(@book.id)
+    redirect_to :action => :index
   end
 
   def contents
