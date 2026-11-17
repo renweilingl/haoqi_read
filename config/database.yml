@@ -27,6 +27,9 @@ production:
   password: <%= ENV['DATABASE_PRD_PASSWORD'] %>
   host: <%= ENV['DATABASE_PRD_HOST'] %>
   port: <%= ENV['DATABASE_PRD_PORT'] || 3306 %>
+  connect_timeout: 5
+  read_timeout: 10
+  write_timeout: 10
 
 staging:
   <<: *default
