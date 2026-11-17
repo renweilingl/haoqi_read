@@ -42,7 +42,7 @@ class FilesController < ApplicationController
         code: 0,
         msg: '上传成功',
         data: {
-          file_url: "http://#{ENV["ALIYUN_OSS_BUCKET"]}.oss-#{ENV["ALIYUN_OSS_ENDPOINT"]}.aliyuncs.com/#{oss_path}",
+          file_url: "https://#{ENV["ALIYUN_OSS_BUCKET"]}.oss-#{ENV["ALIYUN_OSS_ENDPOINT"]}.aliyuncs.com/#{oss_path}",
           file_type: extension,
           file_name: file.original_filename,
           file_size: file.size,
@@ -87,7 +87,7 @@ class FilesController < ApplicationController
         code: 0,
         msg: '上传成功',
         data: {
-          file_url: "http://#{ENV["ALIYUN_OSS_BUCKET"]}.oss-#{ENV["ALIYUN_OSS_ENDPOINT"]}.aliyuncs.com/#{new_filename}",
+          file_url: "https://#{ENV["ALIYUN_OSS_BUCKET"]}.oss-#{ENV["ALIYUN_OSS_ENDPOINT"]}.aliyuncs.com/#{new_filename}",
           file_type: extension,
           file_name: file.original_filename,
           file_size: file.size,

@@ -127,7 +127,7 @@ class MnsConsumerWorker
         oss_object = data["MediaWorkflowExecution"]["Input"]["InputFile"]["Object"]
         run_id = data["RunId"]
 
-        content_file_url = "http://#{ENV["ALIYUN_OSS_BUCKET"]}.oss-#{ENV["ALIYUN_OSS_ENDPOINT"]}.aliyuncs.com/#{oss_object}"
+        content_file_url = "https://#{ENV["ALIYUN_OSS_BUCKET"]}.oss-#{ENV["ALIYUN_OSS_ENDPOINT"]}.aliyuncs.com/#{oss_object}"
         mps_act = MpsAct.create(oss_object: oss_object, run_id: run_id, content_file_url: content_file_url)
 
         #10分钟后检查一次

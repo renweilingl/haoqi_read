@@ -10,7 +10,7 @@ class FileUploadJob < ApplicationJob
     file.close
     cleanup_temp_file(file_path)
 
-    book = Book.find_by(file_url: "http://#{ENV["ALIYUN_OSS_BUCKET"]}.oss-#{ENV["ALIYUN_OSS_ENDPOINT"]}.aliyuncs.com/#{oss_key}")
+    book = Book.find_by(file_url: "https://#{ENV["ALIYUN_OSS_BUCKET"]}.oss-#{ENV["ALIYUN_OSS_ENDPOINT"]}.aliyuncs.com/#{oss_key}")
     return if book.nil?
 
     return unless ["epub", "pdf"].include? book.file_type
