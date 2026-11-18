@@ -33,20 +33,22 @@ class FilesController < ApplicationController
       tmp_file_path = file.tempfile.path
       mime = `file --brief --mime-type "#{tmp_file_path}"`.strip
 
-      temp_path = save_temp_file(file, new_filename)
-      duration = MediaDurationService.extract_duration(temp_path)
+      temp_dir = Rails.root.join('tmp', 'uploads')
+      FileUtils.mkdir_p(temp_dir)
+      persistent_path = temp_dir.join(new_filename).to_s
+      FileUtils.cp(tmp_file_path, persistent_path)
 
-      FileUploadJob.perform_later(oss_path, temp_path, mime)
+      MediaVideoUploadJob.perform_later(oss_path, persistent_path, mime)
 
       render json: {
         code: 0,
-        msg: '上传成功',
+        msg: '上传已提交，正在后台处理',
         data: {
           file_url: "https://#{ENV["ALIYUN_OSS_BUCKET"]}.oss-#{ENV["ALIYUN_OSS_ENDPOINT"]}.aliyuncs.com/#{oss_path}",
           file_type: extension,
           file_name: file.original_filename,
           file_size: file.size,
-          duration: duration,
+          duration: nil,
           file_size_desc: ActiveSupport::NumberHelper.number_to_human_size(file.size)
         }
       }
@@ -121,7 +123,7 @@ class FilesController < ApplicationController
     tmp_file_path = file.tempfile.path
     mime = `file --brief --mime-type "#{tmp_file_path}"`.strip
 
-    oss_path = AliyunOss.instance.put(new_filename, File.read(file.tempfile.path), {'content_type': mime})
+    oss_path = AliyunOss.instance.put(new_filename, File.open(file.tempfile.path), {'content_type': mime})
 
     render json: {
       success: true,
@@ -158,7 +160,7 @@ class FilesController < ApplicationController
     tmp_file_path = file.tempfile.path
     mime = `file --brief --mime-type "#{tmp_file_path}"`.strip
 
-    oss_path = AliyunOssOpen.instance.put(new_filename, File.read(tmp_file_path), {'content_type': mime})
+    oss_path = AliyunOssOpen.instance.put(new_filename, File.open(tmp_file_path), {'content_type': mime})
 
     render json: {
       success: true,
@@ -173,7 +175,7 @@ class FilesController < ApplicationController
     temp_dir = Rails.root.join('tmp', 'uploads')
     FileUtils.mkdir_p(temp_dir) unless Dir.exist?(temp_dir)
     temp_path = temp_dir.join(filename)
-    File.open(temp_path, 'wb') { |f| f.write(file.read) }
+    FileUtils.cp(file.tempfile.path, temp_path.to_s)
     temp_path.to_s
   end
 
