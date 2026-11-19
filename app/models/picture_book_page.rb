@@ -32,13 +32,20 @@ class PictureBookPage < ApplicationRecord
     []
   end
 
-  # 只替换行数据，payload 里的 image/index/start/end/char_times 等其余键保持库中原样，
+  # 只替换行数据与逐字播放时间，payload 里的 image/index/start/end 等其余键保持库中原样，
   # 并保持原来的存储格式（字符串存的仍存字符串），避免 haoqi_voicebook 读不出来。
-  def update_subtitle_lines!(new_lines)
+  # char_times 传 nil 表示不改这一项。
+  def update_subtitle!(new_lines, char_times: nil)
     stored_as_string = self.lines.is_a?(String)
     payload = subtitle_payload
-    payload = {} unless payload.is_a?(Hash)
-    payload["lines"] = new_lines
+
+    if payload.is_a?(Array)
+      payload = new_lines
+    else
+      payload = {} unless payload.is_a?(Hash)
+      payload["lines"] = new_lines
+      payload["char_times"] = char_times unless char_times.nil?
+    end
 
     update!(lines: stored_as_string ? JSON.generate(payload) : payload)
   end

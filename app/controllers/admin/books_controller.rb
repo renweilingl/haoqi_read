@@ -72,6 +72,11 @@ class Admin::BooksController < ApplicationController
     @page_meta = @subtitle_payload.is_a?(Hash) ? @subtitle_payload : {}
     @page_image = @book_page.image_url.presence || @page_meta["image"]
     @token_keys = token_keys_of(@subtitle_lines)
+
+    # char_times 是整页逐字播放时间，按 token 出现顺序与文字一一对应
+    @char_times = @page_meta["char_times"].is_a?(Array) ? @page_meta["char_times"] : nil
+    @token_count = @subtitle_lines.sum { |line| line.is_a?(Hash) ? Array.wrap(line["tokens"]).size : 0 }
+    @inline_char_times = @char_times.present? && @char_times.size == @token_count
   end
 
   def update_correction
@@ -81,7 +86,19 @@ class Admin::BooksController < ApplicationController
     new_lines = normalized_lines(params[:lines])
     return render json: {code: 1, msg: "lines 格式不正确"} if new_lines.nil?
 
-    @book_page.update_subtitle_lines!(new_lines)
+    char_times = nil
+    if params[:char_times].present?
+      char_times = normalized_char_times(params[:char_times])
+      return render json: {code: 1, msg: "char_times 必须是一组数字"} if char_times.nil?
+
+      # Rails 解析 JSON body 时会丢掉数组里的 null，项数变少会让后面每个字的播放时间错位
+      saved_char_times = saved_char_times_of(@book_page)
+      if saved_char_times && char_times.size != saved_char_times.size
+        return render json: {code: 1, msg: "char_times 项数不能变（原有 #{saved_char_times.size} 项，收到 #{char_times.size} 项）"}
+      end
+    end
+
+    @book_page.update_subtitle!(new_lines, char_times: char_times)
     render json: {code: 0}
   rescue ActiveRecord::RecordInvalid => e
     render json: {code: 1, msg: e.message}
@@ -139,6 +156,29 @@ class Admin::BooksController < ApplicationController
 
       line
     end
+  end
+
+  # 逐字播放时间：只接受数组，元素必须能转成数字；原本就是数字的保持原类型（不强行转 Float）
+  def normalized_char_times(param)
+    return nil unless param.is_a?(Array)
+
+    param.map do |value|
+      next value if value.is_a?(Numeric)
+
+      begin
+        Float(value)
+      rescue ArgumentError, TypeError
+        return nil
+      end
+    end
+  end
+
+  # 库里已存的逐字播放时间；这一页没有 char_times 时返回 nil
+  def saved_char_times_of(book_page)
+    payload = book_page.subtitle_payload
+    return nil unless payload.is_a?(Hash)
+
+    payload["char_times"].is_a?(Array) ? payload["char_times"] : nil
   end
 
   def book_params

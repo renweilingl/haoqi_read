@@ -37,8 +37,19 @@
           <div class="meta-text">
             <p>页码：<%= @book_page.page_number %>　页 index：<%= @page_meta["index"] %></p>
             <p>本页朗读：<%= @page_meta["start"] %>s ~ <%= @page_meta["end"] %>s　共 <%= @subtitle_lines.size %> 行</p>
+            <% if @char_times %>
+              <p>
+                逐字播放时间：<%= @char_times.size %> 项　本页文字：<%= @token_count %> 个
+                <%= @inline_char_times ? "（数量一致，按顺序与文字一一对应）" : "（数量不一致，只能在下方的 char_times 列表里按下标改）" %>
+              </p>
+            <% end %>
           </div>
         </div>
+      </div>
+
+      <div class="layui-btn-container">
+        <button type="button" class="layui-btn" id="save-correction">保存本页</button>
+        <span class="dirty-tip layui-hide" id="dirty-tip">有未保存的修改</span>
       </div>
 
       <% if @subtitle_lines.empty? %>
@@ -46,11 +57,7 @@
           <div class="layui-card-body">本页 lines 里没有可校正的行数据。</div>
         </div>
       <% else %>
-        <div class="layui-btn-container">
-          <button type="button" class="layui-btn" id="save-correction">保存本页</button>
-          <span class="dirty-tip layui-hide" id="dirty-tip">有未保存的修改</span>
-        </div>
-
+        <% char_time_index = 0 %>
         <% @subtitle_lines.each_with_index do |line, line_index| %>
           <% tokens = line.is_a?(Hash) ? Array.wrap(line["tokens"]) : [] %>
           <div class="layui-card">
@@ -72,6 +79,9 @@
                         <% @token_keys.each do |key| %>
                           <th><%= key %></th>
                         <% end %>
+                        <% if @inline_char_times %>
+                          <th style="width:150px;">播放时间(s)</th>
+                        <% end %>
                       </tr>
                     </thead>
                     <tbody>
@@ -89,6 +99,14 @@
                                      value="<%= owned ? token[key] : '' %>">
                             </td>
                           <% end %>
+                          <% if @inline_char_times %>
+                            <td>
+                              <input type="number" step="0.01" class="layui-input time-input"
+                                     data-time-index="<%= char_time_index %>"
+                                     value="<%= @char_times[char_time_index] %>">
+                            </td>
+                          <% end %>
+                          <% char_time_index += 1 %>
                         </tr>
                       <% end %>
                     </tbody>
@@ -99,14 +117,48 @@
           </div>
         <% end %>
       <% end %>
+
+      <% if @char_times.present? && !@inline_char_times %>
+        <div class="layui-card">
+          <div class="layui-card-header">
+            char_times 逐字播放时间
+            <span class="line-time">共 <%= @char_times.size %> 项，与本页 <%= @token_count %> 个文字数量不一致，请按下标核对后修改</span>
+          </div>
+          <div class="layui-card-body">
+            <div style="overflow-x:auto;">
+              <table class="layui-table token-table char-times-table">
+                <thead>
+                  <tr>
+                    <th style="width:60px;">#</th>
+                    <th style="width:150px;">播放时间(s)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% @char_times.each_with_index do |value, index| %>
+                    <tr>
+                      <td><%= index %></td>
+                      <td>
+                        <input type="number" step="0.01" class="layui-input time-input"
+                               data-time-index="<%= index %>"
+                               value="<%= value %>">
+                      </td>
+                    </tr>
+                  <% end %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      <% end %>
     <% end %>
   </div>
 </div>
 
-<% if @book_page && @subtitle_payload && @subtitle_lines.any? %>
+<% if @book_page && @subtitle_payload && (@subtitle_lines.any? || @char_times.present?) %>
 <script>
-  // 直接持有库里解析出来的行数据，编辑时只改被改动的字段，其余键（含 char_times 等）原样带回
+  // 直接持有库里解析出来的数据，编辑时只改被改动的字段，其余键（image/index/start/end 等）原样带回
   var SUBTITLE_LINES = <%= json_escape(@subtitle_lines.to_json).html_safe %>;
+  var CHAR_TIMES = <%= @char_times ? json_escape(@char_times.to_json).html_safe : "null" %>;
   var SAVE_URL = '<%= update_correction_admin_book_path(@book) %>';
   var PAGE_NUMBER = <%= @book_page.page_number %>;
 
@@ -144,13 +196,36 @@
       markDirty();
     });
 
+    $('.time-input').on('input', function(){
+      var $input = $(this);
+      var index = $input.data('time-index');
+      if (!CHAR_TIMES || CHAR_TIMES[index] === undefined) return;
+
+      var value = $input.val().trim();
+      var number = Number(value);
+      var valid = value !== '' && !isNaN(number);
+      $input.toggleClass('time-invalid', !valid);
+      if (valid) CHAR_TIMES[index] = number;
+      markDirty();
+    });
+
     $save.on('click', function(){
+      var invalid = $('.time-input.time-invalid');
+      if (invalid.length) {
+        layer.msg('播放时间必须是数字，还有 ' + invalid.length + ' 处不合法', {icon: 2});
+        invalid.first().focus();
+        return;
+      }
+
+      var body = {page_number: PAGE_NUMBER, lines: SUBTITLE_LINES};
+      if (CHAR_TIMES) body.char_times = CHAR_TIMES;
+
       $.ajax({
         url: SAVE_URL,
         type: 'PUT',
         contentType: 'application/json',
         dataType: 'json',
-        data: JSON.stringify({page_number: PAGE_NUMBER, lines: SUBTITLE_LINES}),
+        data: JSON.stringify(body),
         beforeSend: function(){ $save.prop('disabled', true).addClass('layui-btn-disabled'); },
         success: function(res){
           if (res && res.code === 0) {
@@ -179,7 +254,9 @@
   .meta-text p { margin: 4px 0; color: #666; }
   .line-time { margin-left: 12px; color: #999; font-size: 12px; }
   .token-table td, .token-table th { padding: 6px 8px; }
-  .token-table .token-input { height: 32px; }
+  .token-table .token-input, .token-table .time-input { height: 32px; }
+  .char-times-table { max-width: 260px; }
+  .time-invalid { border-color: #ff5722 !important; background-color: #fff2f0; }
   .dirty-tip { margin-left: 12px; color: #ff5722; }
   .empty-tip { color: #999; }
   .raw-json { white-space: pre-wrap; word-break: break-all; color: #ff5722; }
