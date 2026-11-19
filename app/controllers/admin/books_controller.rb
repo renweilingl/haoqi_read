@@ -132,7 +132,8 @@ class Admin::BooksController < ApplicationController
     @book = Book.find_by_id params[:id]
   end
 
-  # 所有 token 出现过的字段（ch/py/kw/b...），按出现顺序取并集，用于渲染编辑列
+  # 所有 token 出现过的字段（ch/py/b...），按出现顺序取并集，用于渲染编辑列。
+  # kw 是重点字标记，页面上有专门的勾选框，不当普通文本字段渲染，避免同一个值两处编辑。
   def token_keys_of(lines)
     keys = []
     lines.each do |line|
@@ -142,7 +143,7 @@ class Admin::BooksController < ApplicationController
         keys |= token.keys if token.is_a?(Hash)
       end
     end
-    keys
+    keys - ["kw"]
   end
 
   # 只接受「行数组，每行是对象，tokens 是数组」这一种结构，其余返回 nil 由调用方报错

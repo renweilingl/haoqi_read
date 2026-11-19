@@ -33,9 +33,17 @@ module PictureBooksHelper
       ts = arrs[1].split("-")                                                    
       next if ts.size != 2                                                       
                                                                                  
-      content = BookContent.find_by(book_id: book_id, name: name)                
-      next if content.nil?                                                       
+      content = BookContent.find_by(book_id: book_id, name: name)
+      next if content.nil?
       content.update(start_at: ts[0], deal_at: ts[1])
     end
+  end
+
+  # 重点字标记：token 里的 kw 字段，1 表示重点字；没有这个键、或值为 0/false 都算普通字
+  def keyword_token?(token)
+    return false unless token.is_a?(Hash)
+
+    kw = token["kw"]
+    !kw.nil? && kw != false && kw != 0 && kw != "0"
   end
 end

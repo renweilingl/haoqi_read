@@ -79,6 +79,7 @@
                         <% @token_keys.each do |key| %>
                           <th><%= key %></th>
                         <% end %>
+                        <th style="width:80px;">重点字</th>
                         <% if @inline_char_times %>
                           <th style="width:150px;">播放时间(s)</th>
                         <% end %>
@@ -86,7 +87,8 @@
                     </thead>
                     <tbody>
                       <% tokens.each_with_index do |token, token_index| %>
-                        <tr>
+                        <% keyword = keyword_token?(token) %>
+                        <tr class="<%= 'kw-row' if keyword %>">
                           <td><%= token_index %></td>
                           <% @token_keys.each do |key| %>
                             <% owned = token.is_a?(Hash) && token.key?(key) %>
@@ -99,6 +101,12 @@
                                      value="<%= owned ? token[key] : '' %>">
                             </td>
                           <% end %>
+                          <td class="kw-cell">
+                            <input type="checkbox" class="kw-input" title="重点字"
+                                   data-line="<%= line_index %>"
+                                   data-token="<%= token_index %>"
+                                   <%= 'checked' if keyword %>>
+                          </td>
                           <% if @inline_char_times %>
                             <td>
                               <input type="number" step="0.01" class="layui-input time-input"
@@ -196,6 +204,23 @@
       markDirty();
     });
 
+    // 重点字：勾上写 kw: 1，取消勾就把这个键删掉（约定非重点字不带 kw）
+    $('.kw-input').on('change', function(){
+      var $input = $(this);
+      var line = SUBTITLE_LINES[$input.data('line')];
+      var token = line && line.tokens && line.tokens[$input.data('token')];
+      if (!token) return;
+
+      var checked = $input.prop('checked');
+      if (checked) {
+        token.kw = 1;
+      } else {
+        delete token.kw;
+      }
+      $input.closest('tr').toggleClass('kw-row', checked);
+      markDirty();
+    });
+
     $('.time-input').on('input', function(){
       var $input = $(this);
       var index = $input.data('time-index');
@@ -256,6 +281,10 @@
   .token-table td, .token-table th { padding: 6px 8px; }
   .token-table .token-input, .token-table .time-input { height: 32px; }
   .char-times-table { max-width: 260px; }
+  .kw-cell { text-align: center; }
+  .kw-input { width: 18px; height: 18px; cursor: pointer; vertical-align: middle; }
+  .kw-row td { background-color: #fff7f0; }
+  .kw-row .token-input { color: #ff5722; font-weight: bold; }
   .time-invalid { border-color: #ff5722 !important; background-color: #fff2f0; }
   .dirty-tip { margin-left: 12px; color: #ff5722; }
   .empty-tip { color: #999; }
