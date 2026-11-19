@@ -1,7 +1,7 @@
 class Admin::BooksController < ApplicationController
   include PictureBooksHelper
   before_action :require_login
-  before_action :get_resource, only: %i[edit update destroy contents multimedia batch_clean_contents correction]
+  before_action :get_resource, only: %i[edit update destroy contents multimedia batch_clean_contents correction update_correction]
 
   def index
     authorize Book
@@ -62,6 +62,29 @@ class Admin::BooksController < ApplicationController
   end
 
   def correction
+    #PictureBookPage.create(book_id: 4, page_number: 1, lines: '{"end": 2.501, "image": "http://haoqi-read.oss-cn-hangzhou.aliyuncs.com/ca8e1222fac24bcb806e266fd1d92591", "index": 0, "lines": [{"end": 2.501, "start": 0.0, "tokens": [{"ch": "女", "py": "nǚ"}, {"ch": "娲", "py": "wā"}, {"ch": "补", "py": "bǔ"}, {"ch": "天", "py": "tiān"}]}], "start": 0.0, "char_times": [0.1, 0.72, 1.34, 1.96]}')
+    @book_pages = @book.picture_book_pages.ordered
+    @book_page = @book_pages.detect { |page| page.page_number.to_s == params[:page_number].to_s } || @book_pages.first
+    return if @book_page.nil?
+
+    @subtitle_payload = @book_page.subtitle_payload
+    @subtitle_lines = @book_page.subtitle_lines
+    @page_meta = @subtitle_payload.is_a?(Hash) ? @subtitle_payload : {}
+    @page_image = @book_page.image_url.presence || @page_meta["image"]
+    @token_keys = token_keys_of(@subtitle_lines)
+  end
+
+  def update_correction
+    @book_page = @book.picture_book_pages.find_by(page_number: params[:page_number])
+    return render json: {code: 1, msg: "页面不存在"} if @book_page.nil?
+
+    new_lines = normalized_lines(params[:lines])
+    return render json: {code: 1, msg: "lines 格式不正确"} if new_lines.nil?
+
+    @book_page.update_subtitle_lines!(new_lines)
+    render json: {code: 0}
+  rescue ActiveRecord::RecordInvalid => e
+    render json: {code: 1, msg: e.message}
   end
 
   def batch_clean_contents
@@ -90,6 +113,32 @@ class Admin::BooksController < ApplicationController
   private
   def get_resource
     @book = Book.find_by_id params[:id]
+  end
+
+  # 所有 token 出现过的字段（ch/py/kw/b...），按出现顺序取并集，用于渲染编辑列
+  def token_keys_of(lines)
+    keys = []
+    lines.each do |line|
+      next unless line.is_a?(Hash)
+
+      Array.wrap(line["tokens"]).each do |token|
+        keys |= token.keys if token.is_a?(Hash)
+      end
+    end
+    keys
+  end
+
+  # 只接受「行数组，每行是对象，tokens 是数组」这一种结构，其余返回 nil 由调用方报错
+  def normalized_lines(param)
+    return nil unless param.is_a?(Array)
+
+    param.map do |line|
+      line = line.to_unsafe_h if line.is_a?(ActionController::Parameters)
+      return nil unless line.is_a?(Hash)
+      return nil if line.key?("tokens") && !line["tokens"].is_a?(Array)
+
+      line
+    end
   end
 
   def book_params

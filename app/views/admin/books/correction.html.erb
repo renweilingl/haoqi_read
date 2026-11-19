@@ -1,0 +1,186 @@
+<div class="layui-tab">
+  <div class="x-nav">
+    <span class="layui-breadcrumb">
+      <%= link_to "绘本管理", :admin_books %>
+      <a><cite><%= @book.name %></cite></a>
+      <a><cite>字幕校正</cite></a>
+    </span>
+    <%= render 'common/user_info' %>
+  </div>
+
+  <div class="x-body">
+    <% if @book_page.nil? %>
+      <div class="layui-card">
+        <div class="layui-card-body">这本绘本还没有字幕数据（picture_book_pages 里没有记录）。</div>
+      </div>
+    <% elsif @subtitle_payload.nil? %>
+      <div class="layui-card">
+        <div class="layui-card-body">
+          第 <%= @book_page.page_number %> 页的 lines 不是合法 JSON，无法校正：
+          <pre class="raw-json"><%= @book_page.lines %></pre>
+        </div>
+      </div>
+    <% else %>
+      <div class="layui-btn-container">
+        <% @book_pages.each do |page| %>
+          <%= link_to "第 #{page.page_number} 页",
+                correction_admin_book_path(@book, page_number: page.page_number),
+                class: "layui-btn layui-btn-sm#{' layui-btn-primary' unless page.id == @book_page.id}" %>
+        <% end %>
+      </div>
+
+      <div class="layui-card">
+        <div class="layui-card-body page-meta">
+          <% if @page_image.present? %>
+            <img src="<%= @page_image %>" class="page-image">
+          <% end %>
+          <div class="meta-text">
+            <p>页码：<%= @book_page.page_number %>　页 index：<%= @page_meta["index"] %></p>
+            <p>本页朗读：<%= @page_meta["start"] %>s ~ <%= @page_meta["end"] %>s　共 <%= @subtitle_lines.size %> 行</p>
+          </div>
+        </div>
+      </div>
+
+      <% if @subtitle_lines.empty? %>
+        <div class="layui-card">
+          <div class="layui-card-body">本页 lines 里没有可校正的行数据。</div>
+        </div>
+      <% else %>
+        <div class="layui-btn-container">
+          <button type="button" class="layui-btn" id="save-correction">保存本页</button>
+          <span class="dirty-tip layui-hide" id="dirty-tip">有未保存的修改</span>
+        </div>
+
+        <% @subtitle_lines.each_with_index do |line, line_index| %>
+          <% tokens = line.is_a?(Hash) ? Array.wrap(line["tokens"]) : [] %>
+          <div class="layui-card">
+            <div class="layui-card-header">
+              第 <%= line_index + 1 %> 行
+              <% if line.is_a?(Hash) && (line["start"] || line["end"]) %>
+                <span class="line-time"><%= line["start"] %>s ~ <%= line["end"] %>s</span>
+              <% end %>
+            </div>
+            <div class="layui-card-body">
+              <% if tokens.empty? %>
+                <span class="empty-tip">该行没有 token</span>
+              <% else %>
+                <div style="overflow-x:auto;">
+                  <table class="layui-table token-table">
+                    <thead>
+                      <tr>
+                        <th style="width:60px;">#</th>
+                        <% @token_keys.each do |key| %>
+                          <th><%= key %></th>
+                        <% end %>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <% tokens.each_with_index do |token, token_index| %>
+                        <tr>
+                          <td><%= token_index %></td>
+                          <% @token_keys.each do |key| %>
+                            <% owned = token.is_a?(Hash) && token.key?(key) %>
+                            <td>
+                              <input type="text" class="layui-input token-input"
+                                     data-line="<%= line_index %>"
+                                     data-token="<%= token_index %>"
+                                     data-key="<%= key %>"
+                                     data-owned="<%= owned ? 1 : 0 %>"
+                                     value="<%= owned ? token[key] : '' %>">
+                            </td>
+                          <% end %>
+                        </tr>
+                      <% end %>
+                    </tbody>
+                  </table>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      <% end %>
+    <% end %>
+  </div>
+</div>
+
+<% if @book_page && @subtitle_payload && @subtitle_lines.any? %>
+<script>
+  // 直接持有库里解析出来的行数据，编辑时只改被改动的字段，其余键（含 char_times 等）原样带回
+  var SUBTITLE_LINES = <%= json_escape(@subtitle_lines.to_json).html_safe %>;
+  var SAVE_URL = '<%= update_correction_admin_book_path(@book) %>';
+  var PAGE_NUMBER = <%= @book_page.page_number %>;
+
+  layui.use(['layer'], function(){
+    var layer = layui.layer;
+    var $save = $('#save-correction');
+    var dirty = false;
+
+    function markDirty(){
+      if (dirty) return;
+      dirty = true;
+      $('#dirty-tip').removeClass('layui-hide');
+    }
+
+    // 数字/布尔字段被文本框编辑后不能变成字符串
+    function coerce(original, value){
+      if (typeof original === 'number' && value.trim() !== '' && !isNaN(Number(value))) return Number(value);
+      if (typeof original === 'boolean') return value === 'true' || value === '1';
+      return value;
+    }
+
+    $('.token-input').on('input', function(){
+      var $input = $(this);
+      var line = SUBTITLE_LINES[$input.data('line')];
+      var token = line && line.tokens && line.tokens[$input.data('token')];
+      if (!token) return;
+
+      var key = $input.data('key');
+      var value = $input.val();
+      if ($input.data('owned') === 1 || value !== '') {
+        token[key] = coerce(token[key], value);
+      } else {
+        delete token[key];
+      }
+      markDirty();
+    });
+
+    $save.on('click', function(){
+      $.ajax({
+        url: SAVE_URL,
+        type: 'PUT',
+        contentType: 'application/json',
+        dataType: 'json',
+        data: JSON.stringify({page_number: PAGE_NUMBER, lines: SUBTITLE_LINES}),
+        beforeSend: function(){ $save.prop('disabled', true).addClass('layui-btn-disabled'); },
+        success: function(res){
+          if (res && res.code === 0) {
+            dirty = false;
+            $('#dirty-tip').addClass('layui-hide');
+            layer.msg('保存成功', {icon: 1});
+          } else {
+            layer.msg((res && res.msg) || '保存失败', {icon: 2});
+          }
+        },
+        error: function(){ layer.msg('保存失败，请重试', {icon: 2}); },
+        complete: function(){ $save.prop('disabled', false).removeClass('layui-btn-disabled'); }
+      });
+    });
+
+    $(window).on('beforeunload', function(){
+      if (dirty) return '有未保存的修改，确定离开吗？';
+    });
+  });
+</script>
+<% end %>
+
+<style>
+  .page-meta { display: flex; align-items: center; }
+  .page-image { max-width: 260px; max-height: 180px; margin-right: 20px; }
+  .meta-text p { margin: 4px 0; color: #666; }
+  .line-time { margin-left: 12px; color: #999; font-size: 12px; }
+  .token-table td, .token-table th { padding: 6px 8px; }
+  .token-table .token-input { height: 32px; }
+  .dirty-tip { margin-left: 12px; color: #ff5722; }
+  .empty-tip { color: #999; }
+  .raw-json { white-space: pre-wrap; word-break: break-all; color: #ff5722; }
+</style>

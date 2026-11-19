@@ -124,6 +124,7 @@ Rails.application.routes.draw do
     resources :books do
       get 'contents', on: :member
       get 'correction', on: :member
+      put 'update_correction', on: :member
       post 'multimedia', on: :member
       delete 'batch_clean_contents', on: :member
     end
