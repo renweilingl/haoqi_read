@@ -1,7 +1,7 @@
 class Admin::BooksController < ApplicationController
   include PictureBooksHelper
   before_action :require_login
-  before_action :get_resource, only: %i[edit update destroy contents multimedia batch_clean_contents]
+  before_action :get_resource, only: %i[edit update destroy contents multimedia batch_clean_contents correction]
 
   def index
     authorize Book
@@ -59,6 +59,9 @@ class Admin::BooksController < ApplicationController
       }                                                                          
       render json: {data: items, code: 0, count: resource.size}                  
     end
+  end
+
+  def correction
   end
 
   def batch_clean_contents
