@@ -44,7 +44,7 @@ class FilesController < ApplicationController
         code: 0,
         msg: '上传已提交，正在后台处理',
         data: {
-          file_url: "https://#{ENV["ALIYUN_OSS_BUCKET"]}.oss-#{ENV["ALIYUN_OSS_ENDPOINT"]}.aliyuncs.com/#{oss_path}",
+          file_url: "#{oss_base_url}/#{oss_path}",
           file_type: extension,
           file_name: file.original_filename,
           file_size: file.size,
@@ -89,7 +89,7 @@ class FilesController < ApplicationController
         code: 0,
         msg: '上传成功',
         data: {
-          file_url: "https://#{ENV["ALIYUN_OSS_BUCKET"]}.oss-#{ENV["ALIYUN_OSS_ENDPOINT"]}.aliyuncs.com/#{new_filename}",
+          file_url: "#{oss_base_url}/#{new_filename}",
           file_type: extension,
           file_name: file.original_filename,
           file_size: file.size,
@@ -171,6 +171,13 @@ class FilesController < ApplicationController
   end
   
   private
+
+  def oss_base_url
+    bucket = ENV["ALIYUN_OSS_BUCKET"]
+    area = ENV["ALIYUN_OSS_ENDPOINT"].to_s.sub(/^oss-/, '').sub(/\.aliyuncs\.com$/, '')
+    "https://#{bucket}.oss-#{area}.aliyuncs.com"
+  end
+
   def save_temp_file(file, filename)
     temp_dir = Rails.root.join('tmp', 'uploads')
     FileUtils.mkdir_p(temp_dir) unless Dir.exist?(temp_dir)

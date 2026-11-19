@@ -127,7 +127,8 @@ class MnsConsumerWorker
         oss_object = data["MediaWorkflowExecution"]["Input"]["InputFile"]["Object"]
         run_id = data["RunId"]
 
-        content_file_url = "https://#{ENV["ALIYUN_OSS_BUCKET"]}.oss-#{ENV["ALIYUN_OSS_ENDPOINT"]}.aliyuncs.com/#{oss_object}"
+        area = ENV["ALIYUN_OSS_ENDPOINT"].to_s.sub(/^oss-/, '').sub(/\.aliyuncs\.com$/, '')
+        content_file_url = "https://#{ENV["ALIYUN_OSS_BUCKET"]}.oss-#{area}.aliyuncs.com/#{oss_object}"
         mps_act = MpsAct.create(oss_object: oss_object, run_id: run_id, content_file_url: content_file_url)
 
         #10分钟后检查一次
@@ -159,7 +160,8 @@ class MnsConsumerWorker
   end
 
   def gen_file_path(act_path, run_id, filename)
-    "https://#{ENV["ALIYUN_OSS_BUCKET"]}.oss-#{ENV["ALIYUN_OSS_ENDPOINT"]}.aliyuncs.com/#{act_path}/#{run_id}/#{filename}"
+    area = ENV["ALIYUN_OSS_ENDPOINT"].to_s.sub(/^oss-/, '').sub(/\.aliyuncs\.com$/, '')
+    "https://#{ENV["ALIYUN_OSS_BUCKET"]}.oss-#{area}.aliyuncs.com/#{act_path}/#{run_id}/#{filename}"
   end
 
 end

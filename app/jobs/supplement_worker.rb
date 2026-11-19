@@ -15,10 +15,12 @@ class SupplementWorker
     run_id = mps.run_id
     #name = chapter.content_file_url[/[^\/]+(?=\.[^\.]+$)/]
     name = File.basename(chapter.content_file_url)
-    
-    hd_file_path = "https://#{ENV["ALIYUN_OSS_BUCKET"]}.oss-#{ENV["ALIYUN_OSS_ENDPOINT"]}.aliyuncs.com/Act-ss-mp4-hd/#{run_id}/#{name}"
-    ld_file_path = "https://#{ENV["ALIYUN_OSS_BUCKET"]}.oss-#{ENV["ALIYUN_OSS_ENDPOINT"]}.aliyuncs.com/Act-ss-mp4-ld/#{run_id}/#{name}"
-    sd_file_path = "https://#{ENV["ALIYUN_OSS_BUCKET"]}.oss-#{ENV["ALIYUN_OSS_ENDPOINT"]}.aliyuncs.com/Act-ss-mp4-sd/#{run_id}/#{name}"
+    area = ENV["ALIYUN_OSS_ENDPOINT"].to_s.sub(/^oss-/, '').sub(/\.aliyuncs\.com$/, '')
+    base = "https://#{ENV["ALIYUN_OSS_BUCKET"]}.oss-#{area}.aliyuncs.com"
+
+    hd_file_path = "#{base}/Act-ss-mp4-hd/#{run_id}/#{name}"
+    ld_file_path = "#{base}/Act-ss-mp4-ld/#{run_id}/#{name}"
+    sd_file_path = "#{base}/Act-ss-mp4-sd/#{run_id}/#{name}"
 
     chapter.update(hd_file_path: hd_file_path,
                    ld_file_path: ld_file_path,
