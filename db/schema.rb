@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_11_19_000003) do
+ActiveRecord::Schema[7.1].define(version: 2026_11_20_000001) do
   create_table "app_users", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.string "nickname"
     t.string "avatar"
@@ -476,6 +476,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_11_19_000003) do
     t.integer "word_count", default: 0, null: false, comment: "本页汉字数"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.json "keywords"
     t.index ["book_id", "page_number"], name: "index_picture_book_pages_on_book_id_and_page_number", unique: true
     t.index ["book_id"], name: "index_picture_book_pages_on_book_id"
   end
