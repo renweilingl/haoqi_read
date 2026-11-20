@@ -62,7 +62,6 @@ class Admin::BooksController < ApplicationController
   end
 
   def correction
-    #PictureBookPage.create(book_id: 4, page_number: 1, lines: '{"end": 2.501, "image": "http://haoqi-read.oss-cn-hangzhou.aliyuncs.com/ca8e1222fac24bcb806e266fd1d92591", "index": 0, "lines": [{"end": 2.501, "start": 0.0, "tokens": [{"ch": "女", "py": "nǚ"}, {"ch": "娲", "py": "wā"}, {"ch": "补", "py": "bǔ"}, {"ch": "天", "py": "tiān"}]}], "start": 0.0, "char_times": [0.1, 0.72, 1.34, 1.96]}')
     @book_pages = @book.picture_book_pages.ordered
     @book_page = @book_pages.detect { |page| page.page_number.to_s == params[:page_number].to_s } || @book_pages.first
     return if @book_page.nil?
@@ -70,7 +69,10 @@ class Admin::BooksController < ApplicationController
     @subtitle_payload = @book_page.subtitle_payload
     @subtitle_lines = @book_page.subtitle_lines
     @page_meta = @subtitle_payload.is_a?(Hash) ? @subtitle_payload : {}
-    @page_image = @book_page.image_url.presence || @page_meta["image"]
+
+    # 页图存在私有 OSS 桶里，裸链接会 403，签名后浏览器才能加载
+    page_image = @book_page.image_url.presence || @page_meta["image"]
+    @page_image = page_image.present? ? FileMap.new(page_image.to_s, "img").secrity_src : nil
     @token_keys = token_keys_of(@subtitle_lines)
 
     # char_times 是整页逐字播放时间，按 token 出现顺序与文字一一对应
