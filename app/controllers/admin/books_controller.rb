@@ -75,6 +75,12 @@ class Admin::BooksController < ApplicationController
     @page_image = page_image.present? ? FileMap.new(page_image.to_s, "img").secrity_src : nil
     @token_keys = token_keys_of(@subtitle_lines)
 
+    # 播放预览时钟源：绘本自身的 file_url 即整本朗读 mp3，缺失时回退到关联的有声书。
+    # payload 里的 start/end/char_times 都是这条音频上的绝对秒数，同样需要签名才能在浏览器播放。
+    audio_url = @book.file_url.presence || (@book.media_id && Book.find_by(id: @book.media_id)&.file_url)
+    @page_audio = audio_url.present? ? FileMap.new(audio_url.to_s, "").secrity_src : nil
+    logger.info "renweilin: #{audio_url}"
+
     # char_times 是整页逐字播放时间，按 token 出现顺序与文字一一对应
     @char_times = @page_meta["char_times"].is_a?(Array) ? @page_meta["char_times"] : nil
     @token_count = @subtitle_lines.sum { |line| line.is_a?(Hash) ? Array.wrap(line["tokens"]).size : 0 }

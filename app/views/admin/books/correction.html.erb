@@ -33,7 +33,21 @@
         <div class="layui-card correction-preview">
           <div class="layui-card-body page-meta">
             <% if @page_image.present? %>
-              <img src="<%= @page_image %>" class="page-image">
+              <div class="preview-stage" id="preview-stage">
+                <img src="<%= @page_image %>" class="page-image">
+                <div class="preview-subtitle no-pinyin" id="preview-subtitle"></div>
+              </div>
+              <% if @page_audio.present? && (@subtitle_lines.any? || @char_times.present?) %>
+                <div class="preview-controls" id="preview-controls">
+                  <button type="button" class="layui-btn layui-btn-sm" id="pv-play">▶ 播放本页</button>
+                  <input type="range" id="pv-seek" class="pv-seek" min="0" max="1000" step="1" value="0">
+                  <span class="pv-time" id="pv-time">0.00s</span>
+                  <button type="button" class="layui-btn layui-btn-sm layui-btn-primary" id="pv-rate">1.0×</button>
+                  <button type="button" class="layui-btn layui-btn-sm layui-btn-primary" id="pv-pinyin">拼音</button>
+                  <button type="button" class="layui-btn layui-btn-sm layui-btn-primary on" id="pv-subtitle-toggle">字幕</button>
+                </div>
+                <audio id="pv-audio" preload="auto" src="<%= @page_audio %>"></audio>
+              <% end %>
             <% end %>
             <div class="meta-text">
               <p>页码：<%= @book_page.page_number %>　页 index：<%= @page_meta["index"] %></p>
@@ -273,6 +287,137 @@
     $(window).on('beforeunload', function(){
       if (dirty) return '有未保存的修改，确定离开吗？';
     });
+
+    // ===== 播放预览（移植自绘本播放器的编辑/校准台）=====
+    // 以整本朗读音频为时钟，播放本页 [start,end] 区间，逐字高亮。
+    // 直接读取上面同一份 SUBTITLE_LINES / CHAR_TIMES，因此在右栏改动时间/文字后，
+    // 重新播放即可立刻听到/看到效果，无需先保存。
+    var $pvAudio = $('#pv-audio');
+    if ($pvAudio.length) {
+      var pvAudio = $pvAudio[0];
+      var PV_START = <%= (@page_meta["start"] || 0).to_f %>;
+      var PV_END = <%= (@page_meta["end"] || 0).to_f %>;
+      var PV_HAS_END = PV_END > PV_START;
+      var PV_RATES = [1, 1.25, 1.5, 2];
+      var pvRateIdx = 0, pvRaf = null, pvToks = [], pvNodes = null;
+      var FADE = 3, YELLOW = [255, 210, 63], WHITE = [255, 255, 255], GOLD = [233, 185, 74];
+
+      function pvEscape(s){
+        return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){
+          return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];
+        });
+      }
+      function pvFlatten(){
+        var arr = [];
+        (typeof SUBTITLE_LINES !== 'undefined' ? SUBTITLE_LINES : []).forEach(function(line){
+          ((line && line.tokens) || []).forEach(function(tk){ arr.push(tk); });
+        });
+        return arr;
+      }
+      function pvCharTimes(){
+        return (typeof CHAR_TIMES !== 'undefined' && CHAR_TIMES && CHAR_TIMES.length === pvToks.length) ? CHAR_TIMES : null;
+      }
+      function pvRender(){
+        pvToks = pvFlatten();
+        var html = pvToks.map(function(tk, i){
+          var kw = tk && (tk.kw === 1 || tk.kw === true || tk.kw === '1');
+          return '<span class="pv-tok' + (kw ? ' kw' : '') + '" data-i="' + i + '">'
+            + '<span class="pv-py">' + pvEscape(tk && tk.py) + '</span>'
+            + '<span class="pv-ch">' + pvEscape(tk && tk.ch) + '</span></span>';
+        }).join('');
+        $('#preview-subtitle').html(html);
+        pvNodes = $('#preview-subtitle .pv-tok');
+      }
+      function pvColor(kw, dist){
+        var base = kw ? GOLD : WHITE;
+        if (dist < 0 || dist >= FADE) return kw ? 'rgb(233,185,74)' : '#fff';
+        var t = dist / FADE;
+        var c = [0,1,2].map(function(k){ return Math.round(YELLOW[k] + (base[k] - YELLOW[k]) * t); });
+        return 'rgb(' + c[0] + ',' + c[1] + ',' + c[2] + ')';
+      }
+      // 与播放器一致：优先用逐字绝对时间戳；缺失或数量不匹配时，退化为「行时间 × 字数比例」估算
+      function pvCurrentChar(t){
+        if (!pvToks.length) return -1;
+        var ct = pvCharTimes();
+        if (ct) { var idx = -1; for (var i=0;i<ct.length;i++){ if (t >= ct[i]) idx=i; else break; } return idx; }
+        var offset = 0, lines = (typeof SUBTITLE_LINES !== 'undefined' ? SUBTITLE_LINES : []);
+        for (var li=0; li<lines.length; li++){
+          var line=lines[li], tl=((line&&line.tokens)||[]), len=tl.length;
+          var ls=(line&&line.start!=null)?line.start:PV_START, le=(line&&line.end!=null)?line.end:PV_END;
+          if (t < le){ var span=le-ls, r=span>0?(t-ls)/span:1; return Math.max(-1, Math.min(pvToks.length-1, offset+Math.floor(r*len))); }
+          offset += len;
+        }
+        return pvToks.length - 1;
+      }
+      function pvHighlight(cur){
+        if (!pvNodes) return;
+        pvNodes.each(function(){
+          var $t=$(this), i=+$t.data('i'), kw=$t.hasClass('kw');
+          $t.find('.pv-ch, .pv-py').css('color', pvColor(kw, cur - i));
+        });
+      }
+      function pvEndBound(){
+        return PV_HAS_END ? PV_END : (isFinite(pvAudio.duration) && pvAudio.duration ? pvAudio.duration : PV_START + 60);
+      }
+      function pvUpdate(t){
+        var s = PV_START, e = pvEndBound(), span = Math.max(0.0001, e - s);
+        var frac = Math.max(0, Math.min(1, (t - s) / span));
+        $('#pv-seek').val(Math.round(frac * 1000));
+        $('#pv-time').text((t - s).toFixed(2) + 's');
+        pvHighlight(pvCurrentChar(t));
+      }
+      function pvSetPlaying(on){ $('#pv-play').text(on ? '⏸ 暂停' : '▶ 播放本页'); }
+      function pvTick(){
+        var t = pvAudio.currentTime;
+        if (PV_HAS_END && t >= PV_END - 0.01) pvAudio.pause();
+        pvUpdate(t);
+        if (!pvAudio.paused) pvRaf = requestAnimationFrame(pvTick); else pvRaf = null;
+      }
+      function pvPlay(){
+        var t = pvAudio.currentTime;
+        if (!PV_HAS_END || t < PV_START - 0.05 || t >= PV_END - 0.02) { try { pvAudio.currentTime = PV_START; } catch(e){} }
+        pvRender();
+        var p = pvAudio.play();
+        if (p && p.catch) p.catch(function(){});
+      }
+
+      $pvAudio.on('error', function(){
+        layer.msg('朗读音频加载失败（OSS 签名或权限问题）', {icon: 2});
+      });
+      $pvAudio.on('play', function(){ pvSetPlaying(true); if (pvRaf == null) pvRaf = requestAnimationFrame(pvTick); });
+      $pvAudio.on('pause ended', function(){ pvSetPlaying(false); });
+
+      $('#pv-play').on('click', function(){ if (pvAudio.paused) pvPlay(); else pvAudio.pause(); });
+      $('#pv-seek').on('input', function(){
+        var s=PV_START, e=pvEndBound(), span=Math.max(0.0001,e-s);
+        var t = s + (this.value/1000)*span;
+        try { pvAudio.currentTime = t; } catch(e){}
+        pvRender(); pvUpdate(t);
+      });
+      $('#pv-rate').on('click', function(){
+        pvRateIdx = (pvRateIdx + 1) % PV_RATES.length;
+        var r = PV_RATES[pvRateIdx];
+        pvAudio.playbackRate = r;
+        $(this).text((r % 1 === 0 ? r.toFixed(1) : String(r)) + '×');
+      });
+      $('#pv-pinyin').on('click', function(){
+        var $s=$('#preview-subtitle'); $s.toggleClass('no-pinyin'); $(this).toggleClass('on', !$s.hasClass('no-pinyin'));
+      });
+      $('#pv-subtitle-toggle').on('click', function(){
+        var $s=$('#preview-subtitle'); $s.toggleClass('hidden'); $(this).toggleClass('on', !$s.hasClass('hidden'));
+      });
+      // 点字幕里任意字：跳到该字发音处试听（有逐字时间戳才精确）
+      $('#preview-subtitle').on('click', '.pv-tok', function(){
+        var i=+$(this).data('i'), ct=pvCharTimes(), target = ct ? ct[i] : PV_START, e = pvEndBound();
+        try { pvAudio.currentTime = Math.max(PV_START, Math.min(e - 0.01, target)); } catch(err){}
+        pvUpdate(pvAudio.currentTime);
+        var p2 = pvAudio.play();
+        if (p2 && p2.catch) p2.catch(function(){});
+      });
+
+      pvRender();
+      pvUpdate(PV_START);
+    }
   });
 </script>
 <% end %>
@@ -304,4 +449,24 @@
   .dirty-tip { margin-left: 12px; color: #ff5722; }
   .empty-tip { color: #999; }
   .raw-json { white-space: pre-wrap; word-break: break-all; color: #ff5722; }
+
+  /* ===== 播放预览：仅作用于左栏预览卡内部，不改动页面两栏布局 ===== */
+  #pv-audio { display: none; }
+  .preview-stage { position: relative; display: inline-block; max-width: 100%; line-height: 0; }
+  .preview-subtitle {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-end;
+    gap: 4px 6px; padding: 12px 14px; line-height: 1.15; pointer-events: none;
+    background: linear-gradient(to top, rgba(0,0,0,.55), rgba(0,0,0,.18) 55%, transparent);
+  }
+  .preview-subtitle.hidden { display: none; }
+  .pv-tok { display: inline-flex; flex-direction: column; align-items: center; pointer-events: auto; cursor: pointer; }
+  .pv-tok .pv-py { font-size: 13px; font-weight: 700; color: #fff; -webkit-text-stroke: 1.1px #000; paint-order: stroke fill; }
+  .pv-tok .pv-ch { font-size: 20px; font-weight: 700; color: #fff; -webkit-text-stroke: 1.6px #000; paint-order: stroke fill; }
+  .preview-subtitle.no-pinyin .pv-py { display: none; }
+  .pv-tok.kw .pv-ch { background: #fff; border: 2px solid #e9b94a; border-radius: 6px; padding: 0 4px; }
+  .preview-controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 10px; line-height: normal; }
+  .pv-seek { flex: 1 1 160px; min-width: 120px; }
+  .pv-time { min-width: 58px; color: #666; font-size: 12px; font-variant-numeric: tabular-nums; }
+  #preview-controls .layui-btn.on { background-color: #ff5722; border-color: #ff5722; color: #fff; }
 </style>
