@@ -101,6 +101,15 @@ class Admin::BooksController < ApplicationController
     end
 
     @book_page.update_subtitle!(new_lines, char_times: char_times)
+
+    # 提取 keywords 并更新到数据库字段
+    keywords = extract_keywords(new_lines)
+    @book_page.update(keywords: keywords.presence)
+
+    # 调用 haoqi_voicebook API 触发 JSON 重新生成
+    result = VoicebookRegenerateService.call(@book.id)
+    Rails.logger.info "[VoicebookRegenerate] book_id=#{@book.id}, result=#{result.inspect}"
+
     render json: {code: 0}
   rescue ActiveRecord::RecordInvalid => e
     render json: {code: 1, msg: e.message}
@@ -176,12 +185,27 @@ class Admin::BooksController < ApplicationController
     end
   end
 
-  # 库里已存的逐字播放时间；这一页没有 char_times 时返回 nil
+  # 库已存的逐字播放时间；这一页没有 char_times 时返回 nil
   def saved_char_times_of(book_page)
     payload = book_page.subtitle_payload
     return nil unless payload.is_a?(Hash)
 
     payload["char_times"].is_a?(Array) ? payload["char_times"] : nil
+  end
+
+  # 从 lines 中提取所有 kw=1 的 token 的 ch 字段，去重后返回数组
+  def extract_keywords(lines)
+    keywords = []
+    lines.each do |line|
+      next unless line.is_a?(Hash)
+
+      Array.wrap(line["tokens"]).each do |token|
+        next unless token.is_a?(Hash) && token["kw"] == 1 && token["ch"].present?
+
+        keywords << token["ch"]
+      end
+    end
+    keywords.uniq
   end
 
   def book_params
